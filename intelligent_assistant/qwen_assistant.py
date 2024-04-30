@@ -6,11 +6,11 @@ import random
 from dashscope import Generation
 from dashscope.api_entities.dashscope_response import Role
 
-from db.polardb import PolarDB
-from intelligent_assistant.assistant_interface import AssistantInterface
-from conf.assistant_config import AssistantConfig
+from dev.db.polardb import PolarDB
+from dev.intelligent_assistant.assistant_interface import AssistantInterface
+from dev.conf.assistant_config import AssistantConfig
 from http import HTTPStatus
-from utils.conf import Conf
+from dev.utils.conf import Conf
 
 class QwenAssistant(AssistantInterface):
     def __init__(self, conf):

@@ -1,5 +1,5 @@
 import pymysql
-from db.db_interface import DBInterface
+from dev.db.db_interface import DBInterface
 
 
 class PolarDB(DBInterface):

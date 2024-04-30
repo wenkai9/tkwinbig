@@ -1,6 +1,6 @@
 import gradio as gr
 
-from intelligent_assistant.qwen_assistant import QwenAssistant
+from dev.intelligent_assistant.qwen_assistant import QwenAssistant
 
 if __name__ == "__main__":
     qwen = QwenAssistant('')
