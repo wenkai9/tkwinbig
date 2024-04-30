@@ -4,17 +4,14 @@ tkwinbig项目结构
 ```
 /-------------
 /--webui
-/--service
+/--web_service
     /--user
     /--item
-    /--vec_search
     /--rank
-    /--intelligent_assistant
     /--rpa
-/--/--conf
-/--workflow
-    /--delivery
+/--intelligent_assistant
+/--conf
 /--utils
-/--db_schema
+/--db
 /-------------
 ```
