@@ -13,7 +13,7 @@ def upload_product(request):
                 description=data['description'],
                 price=data['price'],
                 category_id=data['category_id'],
-                product_link=data['Product_link'],
+                product_link=data['product_link'],
                 shop_id=data['shopId'],  # 正确的字段名
                 match_tag=data['match_tag']
             )
@@ -23,10 +23,10 @@ def upload_product(request):
                 "description": product.description,
                 "price": str(product.price),
                 "category_id": product.category_id,
-                "Product_link": product.product_link,
+                "product_link": product.product_link,
                 "shopId": product.shop_id,
                 "match_tag": product.match_tag,
-                "createdAt": str(product.created_at)
+                "createdAt": str(product.createdAt)
             }, status=200)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
@@ -44,9 +44,9 @@ def get_product(request, product_id):
                 "description": product.description,
                 "price": str(product.price),
                 "category_id": product.category_id,
-                "Product_link": product.product_link,
+                "product_link": product.product_link,
                 "shopId": product.shop_id,
-                "createdAt": str(product.created_at)
+                "createdAt": str(product.createdAt)
             })
         except Goods.DoesNotExist:
             return JsonResponse({'error': '商品不存在'}, status=404)
@@ -65,7 +65,7 @@ def update_product(request, product_id):
             product.description = data.get('description', product.description)
             product.price = data.get('price', product.price)
             product.category_id = data.get('category_id', product.category_id)
-            product.product_link = data.get('Product_link', product.product_link)
+            product.product_link = data.get('product_link', product.product_link)
             product.match_tag = data.get('match_tag', product.match_tag)
             product.save()
             return JsonResponse({
@@ -74,9 +74,9 @@ def update_product(request, product_id):
                 "description": product.description,
                 "price": str(product.price),
                 "category_id": product.category_id,
-                "Product_link": product.product_link,
+                "product_link": product.product_link,
                 "shopId": product.shop_id,
-                "updatedAt": str(product.updated_at)
+                "updatedAt": str(product.updatedAt)
             })
         except Goods.DoesNotExist:
             return JsonResponse({'error': '商品不存在'}, status=404)
@@ -91,7 +91,7 @@ def delete_product(request, product_id):
         try:
             product = Goods.objects.get(id=product_id)
             product.delete()
-            return JsonResponse({}, status=204)
+            return JsonResponse({"message": "删除成功"}, status=204)
         except Goods.DoesNotExist:
             return JsonResponse({'error': '商品不存在'}, status=404)
         except Exception as e:
