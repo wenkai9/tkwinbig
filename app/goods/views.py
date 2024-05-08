@@ -1,7 +1,11 @@
+import io
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Goods
 import json
+import csv
+
 
 @csrf_exempt
 def upload_product(request):
@@ -33,6 +37,7 @@ def upload_product(request):
     else:
         return JsonResponse({'error': '只支持 POST 请求'}, status=405)
 
+
 @csrf_exempt
 def get_product(request, product_id):
     if request.method == 'GET':
@@ -54,6 +59,7 @@ def get_product(request, product_id):
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': '只支持 GET 请求'}, status=405)
+
 
 @csrf_exempt
 def update_product(request, product_id):
@@ -85,6 +91,7 @@ def update_product(request, product_id):
     else:
         return JsonResponse({'error': '只支持 PUT 请求'}, status=405)
 
+
 @csrf_exempt
 def delete_product(request, product_id):
     if request.method == 'DELETE':
@@ -99,3 +106,46 @@ def delete_product(request, product_id):
     else:
         return JsonResponse({'error': '只支持 DELETE 请求'}, status=405)
 
+
+@csrf_exempt
+def upload_csv(request):
+    if request.method == 'POST' and request.FILES['csv_file']:
+        csv_file = request.FILES['csv_file']
+
+        if not csv_file.name.endswith('.csv'):
+            return JsonResponse({'error': 'File is not a CSV'}, status=400)
+
+        # Assuming the CSV file has headers: "商品标签", "商品描述", "商品价格", "商品类目id", "商品链接", "商品的店铺id"
+        csv_data = csv.reader(io.TextIOWrapper(csv_file, encoding='gb2312'))
+        headers = next(csv_data)
+        products = []
+        for row in csv_data:
+            product = {
+                "商品标签": row[0],
+                "商品描述": row[1],
+                "商品价格": row[2],
+                "商品类目id": row[3],
+                "商品链接": row[4],
+                "商品的店铺id": row[5],
+                "匹配标签": row[0] + row[3]  # 标题+类目
+            }
+            products.append(product)
+
+        # 在这里执行将数据保存到数据库的操作
+        for product in products:
+            try:
+                Goods.objects.create(
+                    title=product['商品描述'],
+                    description=product['商品描述'],
+                    price=product['商品价格'],
+                    category_id=product['商品类目id'],
+                    product_link=product['商品链接'],
+                    shop_id=product['商品的店铺id'],
+                    match_tag=product['匹配标签']
+                )
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status=500)
+
+        return JsonResponse({'success': True, 'products': products}, status=200)
+
+    return JsonResponse({'error': 'Invalid request method or file not provided'}, status=400)
