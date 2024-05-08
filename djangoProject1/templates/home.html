@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+</head>
+<body>
+    <h1>登录成功！欢迎来到主页</h1>
+
+    <!-- 创建店铺按钮 -->
+    <a href="{% url 'create_shop' %}">创建店铺</a>
+
+    <!-- 展示店铺信息 -->
+    <table>
+        <thead>
+            <tr>
+                <th>店铺</th>
+                <th>地区</th>
+                <th>描述</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for shop in shops %}
+            <tr>
+                <td>{{ shop.shop_name }}</td>
+                <td>{{ shop.location }}</td>
+                <td>{{ shop.description }}</td>
+                <td>
+                    <!-- 查看按钮 -->
+                    <a href="{% url 'view_shop' shop.shopId %}">获取店铺信息</a> 
+
+                    <!-- 修改按钮 -->
+                    <a href="{% url 'update_shop' shop.shopId %}">修改店铺信息</a> 
+
+                    <!-- 删除按钮 -->
+                    <form action="{% url 'delete_shop' shop.shopId %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit">删除店铺信息</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
