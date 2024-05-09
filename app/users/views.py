@@ -87,7 +87,7 @@ def user_logout(request):
     if request.method == 'POST':
         # 退出本质-- session过期 或者删除session
         # logout(request)
-        # res = JsonResponse({'code': 0, 'msg': '退出成功！'})
+        JsonResponse({'code': 0, 'msg': '退出成功！'})
         # res.delete_cookie('username')
         # return res
-        return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
+        # return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
