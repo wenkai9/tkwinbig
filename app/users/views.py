@@ -19,6 +19,10 @@ def register(request):
         if not (username and password and email and number and company):
             return JsonResponse({'code': 1, 'errmsg': '缺少必要的参数'})
 
+        # 检查用户名是否已被注册
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'code': 400, 'errmsg': '用户名已存在'})
+
         # 判断参数是否有效
         if not re.match(r'^\w{5,20}$', username):
             return JsonResponse({'code': 400, 'errmsg': '用户名5-20位数字字母下划线'})
