@@ -42,7 +42,7 @@ def register(request):
         user = User(username=username, password=hashed_password, email=email, number=number, company=company)
         user.save()
 
-        return JsonResponse({'code': 0, 'errmsg': '注册成功!'})
+        return JsonResponse({'code': 0, 'msg': '注册成功!'})
 
     return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
 
@@ -59,7 +59,7 @@ def login(request):
             user = User.objects.get(username=username)
             # 检查密码是否匹配
             if check_password(password, user.password):
-                return JsonResponse({'code': 0, 'errmsg': '登录成功!'})
+                return JsonResponse({'code': 0, 'msg': '登录成功!'})
             else:
                 return JsonResponse({'code': 1, 'errmsg': '用户名或密码错误。'})
         except User.DoesNotExist:
@@ -70,4 +70,4 @@ def login(request):
 
 def logout(request):
     if request.method == 'POST':
-        return JsonResponse({'code': 0, 'errmsg': '退出成功!'})
+        return JsonResponse({'code': 0, 'msg': '退出成功!'})

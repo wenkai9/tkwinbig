@@ -78,7 +78,7 @@ def view_shop(request, shopId):
             "createAt": shop.createAt.strftime("%Y-%m-%d %H:%M:%S")
         })
     except Shop.DoesNotExist:
-        return JsonResponse({"error": "店铺不存在"}, status=404)
+        return JsonResponse({"errmsg": "店铺不存在"}, status=404)
 
 
 @csrf_exempt
@@ -99,15 +99,15 @@ def update_shop(request, shopId):
 
             shop.save()
 
-            return JsonResponse({'message': '成功更新店铺信息'})
+            return JsonResponse({'msg': '成功更新店铺信息'})
         else:
-            return JsonResponse({'error': '请求体为空'}, status=400)
+            return JsonResponse({'errmsg': '请求体为空'}, status=400)
     except Shop.DoesNotExist:
-        return JsonResponse({'error': '未找到店铺'}, status=404)
+        return JsonResponse({'errmsg': '未找到店铺'}, status=404)
     except json.decoder.JSONDecodeError:
-        return JsonResponse({'error': '请求体中包含无效的JSON数据'}, status=400)
+        return JsonResponse({'errmsg': '请求体中包含无效的JSON数据'}, status=400)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'errmsg': str(e)}, status=500)
 
 
 @csrf_exempt
@@ -116,6 +116,6 @@ def delete_shop(request, shopId):
     try:
         shop = Shop.objects.get(shopId=shopId)
         shop.delete()
-        return JsonResponse({"message": "成功删除店铺"}, status=200)
+        return JsonResponse({"msg": "成功删除店铺"}, status=200)
     except Shop.DoesNotExist:
-        return JsonResponse({"error": "店铺不存在"}, status=404)
+        return JsonResponse({"errmsg": "店铺不存在"}, status=404)
