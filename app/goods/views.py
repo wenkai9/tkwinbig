@@ -1,6 +1,6 @@
 from openpyxl import Workbook
 import io
-from django.http import JsonResponse,HttpResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Goods
@@ -77,11 +77,10 @@ def list_products(request):
             "createdAt": str(product.createdAt)
         } for product in products]
 
-        return JsonResponse({"products": serialized_products, "page": products.number, "total_pages": paginator.num_pages})
+        return JsonResponse(
+            {"products": serialized_products, "page": products.number, "total_pages": paginator.num_pages})
     else:
         return JsonResponse({'errmsg': '只支持 GET 请求'}, status=405)
-
-
 
 
 @csrf_exempt
