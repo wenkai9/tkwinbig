@@ -2,6 +2,7 @@ import io
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Goods
 import json
 import csv
@@ -36,6 +37,47 @@ def upload_product(request):
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': '只支持 POST 请求'}, status=405)
+
+
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+
+@csrf_exempt
+def list_products(request):
+    if request.method == 'GET':
+        # 检索所有商品并按照商品ID排序
+        all_products = Goods.objects.all().order_by('id')
+
+        # 分页
+        paginator = Paginator(all_products, 10)  # 每页显示10个商品
+        page = request.GET.get('page')
+
+        try:
+            products = paginator.page(page)
+        except PageNotAnInteger:
+            # 如果页码不是整数，则返回第一页
+            products = paginator.page(1)
+        except EmptyPage:
+            # 如果页码超出范围（例如9999），则返回最后一页的结果
+            products = paginator.page(paginator.num_pages)
+
+        # 序列化数据
+        serialized_products = [{
+            "product_id": product.id,
+            "title": product.title,
+            "description": product.description,
+            "price": str(product.price),
+            "category_id": product.category_id,
+            "product_link": product.product_link,
+            "shopId": product.shop_id,
+            "createdAt": str(product.createdAt)
+        } for product in products]
+
+        return JsonResponse({"products": serialized_products, "page": products.number, "total_pages": paginator.num_pages})
+    else:
+        return JsonResponse({'error': '只支持 GET 请求'}, status=405)
+
+
 
 
 @csrf_exempt
