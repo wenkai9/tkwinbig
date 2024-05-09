@@ -2,6 +2,7 @@ import json
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 from .models import Shop
@@ -36,6 +37,36 @@ def create_shop(request):
 
 @csrf_exempt
 @require_http_methods(["GET"])
+def list_shops(request):
+    # 检索所有店铺
+    all_shops = Shop.objects.all().order_by('shopId')
+
+    # 分页
+    paginator = Paginator(all_shops, 10)  # 每页显示10个店铺
+    page = request.GET.get('page')
+
+    try:
+        shops = paginator.page(page)
+    except PageNotAnInteger:
+        # 如果页码不是整数，则返回第一页
+        shops = paginator.page(1)
+    except EmptyPage:
+        # 如果页码超出范围（例如9999），则返回最后一页的结果
+        shops = paginator.page(paginator.num_pages)
+
+    # 序列化数据
+    serialized_shops = [{
+        "shopId": shop.shopId,
+        "shop_name": shop.shop_name,
+        "location": shop.location,
+        "description": shop.description,
+        "createAt": shop.createAt.strftime("%Y-%m-%d %H:%M:%S")
+    } for shop in shops]
+
+    return JsonResponse({"shops": serialized_shops, "page": shops.number, "total_pages": paginator.num_pages})
+
+@csrf_exempt
+@require_http_methods(["GET"])
 def view_shop(request, shopId):
     try:
         shop = Shop.objects.get(shopId=shopId)
@@ -49,26 +80,6 @@ def view_shop(request, shopId):
     except Shop.DoesNotExist:
         return JsonResponse({"error": "店铺不存在"}, status=404)
 
-
-# @csrf_exempt
-# @require_http_methods(["PUT"])
-# def update_shop(request, shopId):
-#     try:
-#         shop = Shop.objects.get(shopId=shopId)
-#         shop.shop_name = request.POST.get('shop_name')
-#         shop.location = request.POST.get('location')
-#         shop.description = request.POST.get('description')
-#         shop.save()
-#
-#         return JsonResponse({
-#             "shopId": shop.shopId,
-#             "shop_name": shop.shop_name,
-#             "location": shop.location,
-#             "description": shop.description,
-#             "updateAt": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-#         })
-#     except Shop.DoesNotExist:
-#         return JsonResponse({"error": "店铺不存在"}, status=404)
 
 @csrf_exempt
 @require_http_methods(["PUT"])
