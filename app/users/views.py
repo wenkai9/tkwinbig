@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import login, authenticate, logout
@@ -7,7 +8,7 @@ import re
 
 
 @csrf_exempt
-def register(request):
+def user_register(request):
     if request.method == 'POST':
         # 获取表单提交的数据
         username = request.POST.get('username')
@@ -49,28 +50,26 @@ def register(request):
 
         # 实现状态保持
         # login(request, user)
-
-        return JsonResponse({'code': 0, 'msg': '注册成功!'})
-        # res =JsonResponse({'code': 0, 'msg': '注册成功!'})
+        # res = JsonResponse({'code': 0, 'msg': '注册成功!'})
         # res.set_cookie('username', user.username, 24 * 30 * 3600)
         # return res
+        return JsonResponse({'code': 0, 'msg': '注册成功!'})
 
     return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
 
 
 @csrf_exempt
-def login(request):
+def user_login(request):
     if request.method == 'POST':
         # 获取表单提交的用户名和密码
         username = request.POST.get('username')
         password = request.POST.get('password')
-
+        print(username, password)
         try:
             # 查询数据库中是否存在该用户
             user = User.objects.get(username=username)
             # 检查密码是否匹配
             if check_password(password, user.password):
-                # 实现状态保持
                 # login(request, user)
                 # res = JsonResponse({'code': 0, 'errmsg': "登录成功！"})
                 # res.set_cookie('username', user.username, 24 * 30 * 3600)
@@ -84,12 +83,11 @@ def login(request):
     return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
 
 
-def logout(request):
+def user_logout(request):
     if request.method == 'POST':
         # 退出本质-- session过期 或者删除session
         # logout(request)
-        return JsonResponse({'code': 0, 'msg': '退出成功!'})
-        # 清除username
-        # res = JsonResponse({'code': 0, 'errmsg': '退出成功！'})
+        # res = JsonResponse({'code': 0, 'msg': '退出成功！'})
         # res.delete_cookie('username')
         # return res
+        return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})

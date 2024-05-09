@@ -1,6 +1,6 @@
+from openpyxl import Workbook
 import io
-
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Goods
@@ -208,3 +208,32 @@ def upload_csv(request):
 
     return JsonResponse({'errmsg': 'Invalid request method or file not provided'}, status=400)
 
+
+@csrf_exempt
+def download_excel(request):
+    if request.method == 'GET':
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = 'attachment; filename="products.xlsx"'
+
+        # 创建一个工作簿并添加一个工作表
+        wb = Workbook()
+        ws = wb.active
+        ws.append(['商品ID', '标题', '描述', '价格', '类目ID',
+                   '一级分类', '二级分类', '商品链接',
+                   '店铺ID', '匹配标签', '创建时间', '更新时间'])
+
+        # 获取所有商品
+        all_products = Goods.objects.all()
+
+        # 将产品数据写入工作表
+        for product in all_products:
+            ws.append([product.id, product.title, product.description, str(product.price),
+                       product.category_id, product.primary_category, product.secondary_category,
+                       product.product_link, product.shop_id, product.match_tag,
+                       str(product.createdAt), str(product.updatedAt)])
+
+        # 将工作簿保存到响应中
+        wb.save(response)
+        return response
+    else:
+        return JsonResponse({'errmsg': '只支持 GET 请求'}, status=405)
