@@ -7,6 +7,8 @@ class Goods(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category_id = models.CharField(max_length=50)
+    primary_category = models.CharField(max_length=50)
+    secondary_category = models.CharField(max_length=50)
     product_link = models.TextField()
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)  # 外键关联到 Shop 模型
     match_tag = models.CharField(max_length=100)

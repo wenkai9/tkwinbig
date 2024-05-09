@@ -18,6 +18,8 @@ def upload_product(request):
                 description=data['description'],
                 price=data['price'],
                 category_id=data['category_id'],
+                primary_category=data['primary_category'],
+                secondary_category=data['secondary_category'],
                 product_link=data['product_link'],
                 shop_id=data['shopId'],  # 正确的字段名
                 match_tag=data['match_tag']
@@ -28,15 +30,17 @@ def upload_product(request):
                 "description": product.description,
                 "price": str(product.price),
                 "category_id": product.category_id,
+                "primary_category": product.primary_category,
+                "secondary_category": product.secondary_category,
                 "product_link": product.product_link,
                 "shopId": product.shop_id,
                 "match_tag": product.match_tag,
                 "createdAt": str(product.createdAt)
             }, status=200)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({'errmsg': str(e)}, status=500)
     else:
-        return JsonResponse({'error': '只支持 POST 请求'}, status=405)
+        return JsonResponse({'errmsg': '只支持 POST 请求'}, status=405)
 
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -68,14 +72,17 @@ def list_products(request):
             "description": product.description,
             "price": str(product.price),
             "category_id": product.category_id,
+            "primary_category": product.primary_category,
+            "secondary_category": product.secondary_category,
             "product_link": product.product_link,
             "shopId": product.shop_id,
+            "match_tag": product.match_tag,
             "createdAt": str(product.createdAt)
         } for product in products]
 
         return JsonResponse({"products": serialized_products, "page": products.number, "total_pages": paginator.num_pages})
     else:
-        return JsonResponse({'error': '只支持 GET 请求'}, status=405)
+        return JsonResponse({'errmsg': '只支持 GET 请求'}, status=405)
 
 
 
@@ -91,16 +98,19 @@ def get_product(request, product_id):
                 "description": product.description,
                 "price": str(product.price),
                 "category_id": product.category_id,
+                "primary_category": product.primary_category,
+                "secondary_category": product.secondary_category,
                 "product_link": product.product_link,
                 "shopId": product.shop_id,
+                "match_tag": product.match_tag,
                 "createdAt": str(product.createdAt)
             })
         except Goods.DoesNotExist:
-            return JsonResponse({'error': '商品不存在'}, status=404)
+            return JsonResponse({'errmsg': '商品不存在'}, status=404)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({'errmsg': str(e)}, status=500)
     else:
-        return JsonResponse({'error': '只支持 GET 请求'}, status=405)
+        return JsonResponse({'errmsg': '只支持 GET 请求'}, status=405)
 
 
 @csrf_exempt
@@ -113,6 +123,8 @@ def update_product(request, product_id):
             product.description = data.get('description', product.description)
             product.price = data.get('price', product.price)
             product.category_id = data.get('category_id', product.category_id)
+            product.primary_category = data.get('primary_category', product.primary_category)
+            product.secondary_category = data.get('secondary_category', product.secondary_category)
             product.product_link = data.get('product_link', product.product_link)
             product.match_tag = data.get('match_tag', product.match_tag)
             product.save()
@@ -122,16 +134,19 @@ def update_product(request, product_id):
                 "description": product.description,
                 "price": str(product.price),
                 "category_id": product.category_id,
+                "primary_category": product.primary_category,
+                "secondary_category": product.secondary_category,
                 "product_link": product.product_link,
                 "shopId": product.shop_id,
+                "match_tag": product.match_tag,
                 "updatedAt": str(product.updatedAt)
             })
         except Goods.DoesNotExist:
-            return JsonResponse({'error': '商品不存在'}, status=404)
+            return JsonResponse({'errmsg': '商品不存在'}, status=404)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({'errmsg': str(e)}, status=500)
     else:
-        return JsonResponse({'error': '只支持 PUT 请求'}, status=405)
+        return JsonResponse({'errmsg': '只支持 PUT 请求'}, status=405)
 
 
 @csrf_exempt
@@ -140,13 +155,13 @@ def delete_product(request, product_id):
         try:
             product = Goods.objects.get(id=product_id)
             product.delete()
-            return JsonResponse({"message": "删除成功"}, status=204)
+            return JsonResponse({"msg": "删除成功"}, status=204)
         except Goods.DoesNotExist:
-            return JsonResponse({'error': '商品不存在'}, status=404)
+            return JsonResponse({'errmsg': '商品不存在'}, status=404)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({'errmsg': str(e)}, status=500)
     else:
-        return JsonResponse({'error': '只支持 DELETE 请求'}, status=405)
+        return JsonResponse({'errmsg': '只支持 DELETE 请求'}, status=405)
 
 
 @csrf_exempt
@@ -155,7 +170,7 @@ def upload_csv(request):
         csv_file = request.FILES['csv_file']
 
         if not csv_file.name.endswith('.csv'):
-            return JsonResponse({'error': 'File is not a CSV'}, status=400)
+            return JsonResponse({'errmsg': 'File is not a CSV'}, status=400)
 
         # Assuming the CSV file has headers: "商品标签", "商品描述", "商品价格", "商品类目id", "商品链接", "商品的店铺id"
         csv_data = csv.reader(io.TextIOWrapper(csv_file, encoding='gb2312'))
@@ -167,9 +182,11 @@ def upload_csv(request):
                 "商品描述": row[1],
                 "商品价格": row[2],
                 "商品类目id": row[3],
-                "商品链接": row[4],
-                "商品的店铺id": row[5],
-                "匹配标签": row[0] + row[3]  # 标题+类目
+                "一级分类": row[4],
+                "二级分类": row[5],
+                "商品链接": row[6],
+                "商品的店铺id": row[7],
+                "匹配标签": row[0] + row[4]  # 标题+类目
             }
             products.append(product)
 
@@ -181,13 +198,15 @@ def upload_csv(request):
                     description=product['商品描述'],
                     price=product['商品价格'],
                     category_id=product['商品类目id'],
+                    primary_category=product['一级分类'],
+                    secondary_category=product['二级分类'],
                     product_link=product['商品链接'],
                     shop_id=product['商品的店铺id'],
                     match_tag=product['匹配标签']
                 )
             except Exception as e:
-                return JsonResponse({'error': str(e)}, status=500)
+                return JsonResponse({'errmsg': str(e)}, status=500)
 
         return JsonResponse({'success': True, 'products': products}, status=200)
 
-    return JsonResponse({'error': 'Invalid request method or file not provided'}, status=400)
+    return JsonResponse({'errmsg': 'Invalid request method or file not provided'}, status=400)
