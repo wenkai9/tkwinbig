@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth import login, authenticate, logout
 from django.views.decorators.csrf import csrf_exempt
 from .models import User
 import re
@@ -46,7 +47,13 @@ def register(request):
         user = User(username=username, password=hashed_password, email=email, number=number, company=company)
         user.save()
 
+        # 实现状态保持
+        # login(request, user)
+
         return JsonResponse({'code': 0, 'msg': '注册成功!'})
+        # res =JsonResponse({'code': 0, 'msg': '注册成功!'})
+        # res.set_cookie('username', user.username, 24 * 30 * 3600)
+        # return res
 
     return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
 
@@ -63,6 +70,11 @@ def login(request):
             user = User.objects.get(username=username)
             # 检查密码是否匹配
             if check_password(password, user.password):
+                # 实现状态保持
+                # login(request, user)
+                # res = JsonResponse({'code': 0, 'errmsg': "登录成功！"})
+                # res.set_cookie('username', user.username, 24 * 30 * 3600)
+                # return res
                 return JsonResponse({'code': 0, 'msg': '登录成功!'})
             else:
                 return JsonResponse({'code': 1, 'errmsg': '用户名或密码错误。'})
@@ -74,4 +86,10 @@ def login(request):
 
 def logout(request):
     if request.method == 'POST':
+        # 退出本质-- session过期 或者删除session
+        # logout(request)
         return JsonResponse({'code': 0, 'msg': '退出成功!'})
+        # 清除username
+        # res = JsonResponse({'code': 0, 'errmsg': '退出成功！'})
+        # res.delete_cookie('username')
+        # return res

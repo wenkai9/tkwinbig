@@ -43,9 +43,6 @@ def upload_product(request):
         return JsonResponse({'errmsg': '只支持 POST 请求'}, status=405)
 
 
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
-
 @csrf_exempt
 def list_products(request):
     if request.method == 'GET':
@@ -53,7 +50,7 @@ def list_products(request):
         all_products = Goods.objects.all().order_by('id')
 
         # 分页
-        paginator = Paginator(all_products, 10)  # 每页显示10个商品
+        paginator = Paginator(all_products, 3)  # 每页显示3个商品
         page = request.GET.get('page')
 
         try:
@@ -210,3 +207,4 @@ def upload_csv(request):
         return JsonResponse({'success': True, 'products': products}, status=200)
 
     return JsonResponse({'errmsg': 'Invalid request method or file not provided'}, status=400)
+
