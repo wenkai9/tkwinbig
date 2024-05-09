@@ -152,15 +152,15 @@
 
         <div class="menu-item pt-5">
           <!--begin:Menu content-->
-          <div class="menu-content">
+          <!-- <div class="menu-content">
             <span class="menu-heading fw-bold text-uppercase fs-7">Help</span>
-          </div>
+          </div> -->
           <!--end:Menu content-->
         </div>
         <!--begin:Menu item-->
         <div class="menu-item">
           <!--begin:Menu link-->
-          <a
+          <!-- <a
             class="menu-link"
             href="https://preview.keenthemes.com/metronic8/vue/docs/base/utilities"
           >
@@ -176,13 +176,13 @@
               />
             </span>
             <span class="menu-title">Components</span>
-          </a>
+          </a> -->
           <!--end:Menu link-->
         </div>
         <!--end:Menu item-->
         <div class="menu-item">
           <!--begin:Menu link-->
-          <a
+          <!-- <a
             class="menu-link"
             href="https://preview.keenthemes.com/metronic8/vue/docs/index"
           >
@@ -198,14 +198,14 @@
               />
             </span>
             <span class="menu-title">Documentation</span>
-          </a>
+          </a> -->
           <!--end:Menu link-->
         </div>
         <!--begin:Menu item-->
         <!--end:Menu item-->
         <div class="menu-item">
           <!--begin:Menu link-->
-          <a
+          <!-- <a
             class="menu-link"
             href="https://preview.keenthemes.com/metronic8/vue/docs/getting-started/changelog"
           >
@@ -221,7 +221,7 @@
               />
             </span>
             <span class="menu-title">Changelog</span>
-          </a>
+          </a> -->
           <!--end:Menu link-->
         </div>
         <!--begin:Menu item-->

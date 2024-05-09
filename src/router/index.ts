@@ -405,6 +405,61 @@ const routes: Array<RouteRecordRaw> = [
           breadcrumbs: ["Crafted", "Widgets"],
         },
       },
+      // 物品管理
+      {
+        path: "/launchmanagement/itemmanagement/ItemManagement",
+        name: "launchmanagement-ItemManagement",
+        component: () =>
+          import("@/views/launchmanagement/itemmanagement/ItemManagement.vue"),
+        meta: {
+          pageTitle: "物品管理",
+        },
+      },
+      {
+        path: "/launchmanagement/launchmanagement",
+        name: "launchmanagement-Launchmanagement",
+        component: () =>
+          import("@/views/launchmanagement/launchmanagement/Index.vue"),
+        meta: {
+          pageTitle: "投放管理",
+        },
+      },
+      {
+        path: "/launchmanagement/effectdata/EffectData",
+        name: "launchmanagement-EffectData",
+        component: () =>
+          import("@/views/launchmanagement/effectdata/EffectData.vue"),
+        meta: {
+          pageTitle: "效果数据",
+        },
+      },
+      {
+        path: "/usercenter/usermanagement/UserManagement",
+        name: "usercenter-UserManagement",
+        component: () =>
+          import("@/views/usercenter/usermanagement/UserManagement.vue"),
+        meta: {
+          pageTitle: "用户管理",
+        },
+      },
+      {
+        path: "/usercenter/shopmanagement/ShopManagement",
+        name: "usercenter-ShopManagement",
+        component: () =>
+          import("@/views/usercenter/shopmanagement/ShopManagement.vue"),
+        meta: {
+          pageTitle: "店铺管理",
+        },
+      },
+      {
+        path: "/usercenter/rechargemanagement/RechargeManagement",
+        name: "usercenter-RechargeManagement",
+        component: () =>
+          import("@/views/usercenter/rechargemanagement/RechargeManagement.vue"),
+        meta: {
+          pageTitle: "充值管理",
+        },
+      },
     ],
   },
   {
@@ -438,6 +493,7 @@ const routes: Array<RouteRecordRaw> = [
           pageTitle: "Password reset",
         },
       },
+
     ],
   },
   {
@@ -491,7 +547,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore();
+  // const authStore = useAuthStore();
   const configStore = useConfigStore();
 
   // current page view title
@@ -501,18 +557,19 @@ router.beforeEach((to, from, next) => {
   configStore.resetLayoutConfig();
 
   // verify auth token before each page change
-  authStore.verifyAuth();
+  // authStore.verifyAuth();
 
   // before page access check if page requires authentication
-  if (to.meta.middleware == "auth") {
-    if (authStore.isAuthenticated) {
-      next();
-    } else {
-      next({ name: "sign-in" });
-    }
-  } else {
-    next();
-  }
+  // if (to.meta.middleware == "auth") {
+  //   if (authStore.isAuthenticated) {
+  //     next();
+  //   } else {
+  //     next({ name: "sign-in" });
+  //   }
+  // } else {
+  //   next();
+  // }
+  next();
 });
 
 export default router;

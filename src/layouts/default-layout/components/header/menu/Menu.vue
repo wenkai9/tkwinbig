@@ -20,7 +20,7 @@
       id="kt_app_header_menu"
       data-kt-menu="true"
     >
-      <KTMenuPages></KTMenuPages>
+      <!-- <KTMenuPages></KTMenuPages> -->
 
       <div
         data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
@@ -28,10 +28,10 @@
         class="menu-item menu-lg-down-accordion menu-sub-lg-down-indention me-0 me-lg-2"
       >
         <!--begin:Menu link-->
-        <span class="menu-link">
+        <!-- <span class="menu-link">
           <span class="menu-title">Help</span>
           <span class="menu-arrow d-lg-none"></span>
-        </span>
+        </span> -->
         <!--end:Menu link-->
         <!--begin:Menu sub-->
         <div

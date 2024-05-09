@@ -1,5 +1,5 @@
 <template>
-  <button
+  <!-- <button
     id="kt_app_layout_builder_toggle"
     class="btn btn-dark app-layout-builder-toggle lh-1 py-4"
     data-bs-toggle="tooltip"
@@ -8,7 +8,7 @@
     data-bs-trigger="hover"
   >
     <KTIcon icon-name="setting-4" icon-class="fs-4 me-1" />Customize
-  </button>
+  </button> -->
 
   <div
     id="kt_app_layout_builder"

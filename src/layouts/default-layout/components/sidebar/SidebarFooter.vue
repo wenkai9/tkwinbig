@@ -1,6 +1,6 @@
 <template>
   <!--begin::Footer-->
-  <div
+  <!-- <div
     class="app-sidebar-footer flex-column-auto pt-2 pb-6 px-6"
     id="kt_app_sidebar_footer"
   >
@@ -15,7 +15,7 @@
       <span class="btn-label">Docs &amp; Components</span>
       <KTIcon icon-name="document" icon-class="btn-icon fs-2 m-0" />
     </a>
-  </div>
+  </div> -->
   <!--end::Footer-->
 </template>
 
