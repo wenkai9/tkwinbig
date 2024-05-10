@@ -1,6 +1,7 @@
 from django.db import models
 from app.shops.models import Shop
 
+
 class Goods(models.Model):
     # product_id = models.CharField(max_length=100, primary_key=True)
     title = models.CharField(max_length=100)
@@ -17,3 +18,6 @@ class Goods(models.Model):
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        db_table = 'tk_goods'

@@ -10,13 +10,8 @@ class User(models.Model):
     company = models.CharField(max_length=100)
     create_at = models.DateTimeField(auto_now_add=True)
 
-
     def __str__(self):
         return self.username
 
-
-
-
-
-
-
+    class Meta:
+        db_table = 'tk_users'

@@ -14,3 +14,6 @@ class Shop(models.Model):
 
     def __str__(self):
         return self.shop_name
+
+    class Meta:
+        db_table = 'tk_shops'

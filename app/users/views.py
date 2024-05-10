@@ -50,10 +50,10 @@ def user_register(request):
 
         # 实现状态保持
         # login(request, user)
-        # res = JsonResponse({'code': 0, 'msg': '注册成功!'})
-        # res.set_cookie('username', user.username, 24 * 30 * 3600)
-        # return res
-        return JsonResponse({'code': 0, 'msg': '注册成功!'})
+        res = JsonResponse({'code': 0, 'msg': '注册成功!'})
+        res.set_cookie('username', user.username, 24 * 30 * 3600)
+        return res
+        # return JsonResponse({'code': 0, 'msg': '注册成功!'})
 
     return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
 
@@ -71,10 +71,10 @@ def user_login(request):
             # 检查密码是否匹配
             if check_password(password, user.password):
                 # login(request, user)
-                # res = JsonResponse({'code': 0, 'errmsg': "登录成功！"})
-                # res.set_cookie('username', user.username, 24 * 30 * 3600)
-                # return res
-                return JsonResponse({'code': 0, 'msg': '登录成功!'})
+                res = JsonResponse({'code': 0, 'errmsg': "登录成功！"})
+                res.set_cookie('username', user.username, 24 * 30 * 3600)
+                return res
+                # return JsonResponse({'code': 0, 'msg': '登录成功!'})
             else:
                 return JsonResponse({'code': 1, 'errmsg': '用户名或密码错误。'})
         except User.DoesNotExist:
@@ -86,8 +86,8 @@ def user_login(request):
 def user_logout(request):
     if request.method == 'POST':
         # 退出本质-- session过期 或者删除session
-        # logout(request)
-        JsonResponse({'code': 0, 'msg': '退出成功！'})
-        # res.delete_cookie('username')
-        # return res
-        # return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
+        logout(request)
+        res = JsonResponse({'code': 0, 'msg': '退出成功！'})
+        res.delete_cookie('username')
+        return res
+    return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})

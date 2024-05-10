@@ -89,27 +89,27 @@ WSGI_APPLICATION = 'djangoProject1.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    "default": {
-        'ENGINE': 'django.db.backends.mysql',
-        "NAME": "tkwinbig",
-        "USER": "root",
-        "PASSWORD": "123456",
-        "HOST": "localhost",
-        "PORT": 3306,
-    }
-}
-
 # DATABASES = {
 #     "default": {
 #         'ENGINE': 'django.db.backends.mysql',
-#         "NAME": "tkwinbig_test",
-#         "USER": "tkwinbig3",
-#         "PASSWORD": "306012swj+",
-#         "HOST": "tkwinbig.mysql.polardb.rds.aliyuncs.com",
+#         "NAME": "tkwinbig",
+#         "USER": "root",
+#         "PASSWORD": "123456",
+#         "HOST": "localhost",
 #         "PORT": 3306,
 #     }
 # }
+
+DATABASES = {
+    "default": {
+        'ENGINE': 'django.db.backends.mysql',
+        "NAME": "tkwinbig_test",
+        "USER": "tkwinbig3",
+        "PASSWORD": "306012swj+",
+        "HOST": "tkwinbig.mysql.polardb.rds.aliyuncs.com",
+        "PORT": 3306,
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
