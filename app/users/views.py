@@ -72,7 +72,7 @@ def user_login(request):
             if check_password(password, user.password):
                 # login(request, user)
                 res = JsonResponse({'code': 0, 'errmsg': "登录成功！"})
-                res.set_cookie('username', user.username, 24 * 30 * 3600)
+                res.set_cookie('username', user.username)
                 return res
                 # return JsonResponse({'code': 0, 'msg': '登录成功!'})
             else:
@@ -81,6 +81,74 @@ def user_login(request):
             return JsonResponse({'code': 1, 'errmsg': '用户不存在。'})
 
     return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
+
+
+@csrf_exempt
+def user_profile(request):
+    if request.method == 'GET':
+        # 检查是否存在名为 username 的 cookie
+        if 'username' in request.COOKIES:
+            username = request.COOKIES['username']
+            try:
+                # 查询数据库中是否存在该用户
+                user = User.objects.get(username=username)
+                user_info = {
+                    '用户名': user.username,
+                    '手机号': user.number,
+                    '邮箱': user.email
+                }
+                return JsonResponse({'code': 0, 'data': user_info})
+            except User.DoesNotExist:
+                return JsonResponse({'code': 1, 'errmsg': '用户不存在。'})
+        else:
+            return JsonResponse({'code': 1, 'errmsg': '用户未登录'})
+
+    return JsonResponse({'code': 1, 'errmsg': '只允许GET请求'})
+
+
+@csrf_exempt
+def change_password(request):
+    if request.method == 'POST':
+        # 检查是否存在名为 username 的 cookie
+        if 'username' in request.COOKIES:
+            username = request.COOKIES['username']
+            try:
+                # 查询数据库中是否存在该用户
+                user = User.objects.get(username=username)
+                # 获取表单提交的旧密码、新密码和确认密码
+                old_password = request.POST.get('old_password')
+                new_password = request.POST.get('new_password')
+                confirm_password = request.POST.get('confirm_password')
+
+                # 检查是否缺少必要的参数
+                if not (old_password and new_password and confirm_password):
+                    return JsonResponse({'code': 1, 'errmsg': '缺少必要的参数'})
+
+                # 检查旧密码是否正确
+                if not check_password(old_password, user.password):
+                    return JsonResponse({'code': 1, 'errmsg': '旧密码不正确'})
+
+                # 检查新密码长度是否在8到20位之间
+                if not re.match(r'^.{8,20}$', new_password):
+                    return JsonResponse({'code': 1, 'errmsg': '新密码长度必须在8到20位之间'})
+
+                # 检查新密码和确认密码是否一致
+                if new_password != confirm_password:
+                    return JsonResponse({'code': 1, 'errmsg': '两次密码不一致'})
+
+                # 对新密码进行哈希处理
+                hashed_password = make_password(new_password)
+                user.password = hashed_password
+                user.save()
+
+                return JsonResponse({'code': 0, 'msg': '密码修改成功'})
+            except User.DoesNotExist:
+                return JsonResponse({'code': 1, 'errmsg': '用户不存在。'})
+        else:
+            return JsonResponse({'code': 1, 'errmsg': '用户未登录'})
+
+    return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
+
 
 
 def user_logout(request):
