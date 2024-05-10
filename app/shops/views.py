@@ -42,7 +42,7 @@ def list_shops(request):
     all_shops = Shop.objects.all().order_by('shopId')
 
     # 分页
-    paginator = Paginator(all_shops, 10)  # 每页显示10个店铺
+    paginator = Paginator(all_shops, 3)  # 每页显示3个店铺
     page = request.GET.get('page')
 
     try:
