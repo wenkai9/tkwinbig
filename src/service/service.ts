@@ -25,26 +25,23 @@ service.interceptors.request.use(
 service.interceptors.response.use((res) => {
   console.log(res, '---------');
   let resJson = res.data
-  if (resJson !== 200) {
-    let code = resJson.code
-    switch (code) {
-      case 1:
-        ElMessage({
-          message: resJson.errmsg,
-          type: 'error'
-        });
-        break;
-      default:
-        break;
-    }
+  console.log(resJson, 'resJson');
+
+  if (resJson.code != 200) {
+    ElMessage({
+      message: resJson.errmsg,
+      type: 'error'
+    });
+
   } else {
+    // ElMessage({
+    //   message: resJson.msg,
+    //   type: 'success'
+    // });
     return res.data;
   }
-  // ElMessage({
-  //   message: resJson.msg,
-  //   type: 'success'
-  // });
-  return res.data
+
+  return res
 },
   error => {
     console.log('err' + error);

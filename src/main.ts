@@ -18,13 +18,16 @@ import { initVeeValidate } from "@/core/plugins/vee-validate";
 import { initKtIcon } from "@/core/plugins/keenthemes";
 
 import "@/core/plugins/prismjs";
+import GlobalPage from "./components/common/globalPage/index.vue";
+
+import dir from './utils/directive'
 
 const app = createApp(App);
 
 app.use(createPinia());
 app.use(router);
 app.use(ElementPlus);
-
+app.component("GlobalPage", GlobalPage);
 ApiService.init(app);
 initApexCharts(app);
 initInlineSvg(app);
@@ -36,5 +39,7 @@ app.use(i18n);
 app.directive("tooltip", (el) => {
   new Tooltip(el);
 });
+
+app.directive('preventReClick', dir.preventReClick)
 
 app.mount("#app");

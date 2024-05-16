@@ -15,10 +15,10 @@ export default defineConfig({
   server: {
     // host: "127.0.0.1",
     host: "0.0.0.0",
-    port: 5015,
+    port: 5016,
     proxy: {
       "/user": {
-        target: "http://192.168.31.163:8000",
+        target: "http://192.168.31.156:8000",
         changeOrigin: true,
         rewrite: (path) =>
           path.replace(

@@ -19,7 +19,7 @@ const MainMenuConfig: Array<MenuItem> = [
   },
   // 投放管理
   {
-    heading: "launchmanagement",
+    // heading: "launchmanagement",
     route: "/launchmanagement",
     pages: [
       {
@@ -80,7 +80,7 @@ const MainMenuConfig: Array<MenuItem> = [
     ]
   },
   {
-    heading: "usercenter",
+    // heading: "usercenter",
     route: "/usercenter",
     pages: [
       {

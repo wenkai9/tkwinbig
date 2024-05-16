@@ -416,6 +416,15 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
+        path: "/launchmanagement/itemmanagement/components/addOrEdit",
+        name: "itemmanagement-addOrEdit",
+        component: () =>
+          import("@/views/launchmanagement/itemmanagement/components/addOrEdit.vue"),
+        meta: {
+          pageTitle: "新增/修改物品",
+        },
+      },
+      {
         path: "/launchmanagement/launchmanagement",
         name: "launchmanagement-Launchmanagement",
         component: () =>
@@ -443,6 +452,15 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
+        path: "/usercenter/shopmanagement/components/addOrEdit",
+        name: "usercenter-addOrEdit",
+        component: () =>
+          import("@/views/usercenter/shopmanagement/components/addOrEdit.vue"),
+        meta: {
+          pageTitle: "新增/修改店铺",
+        },
+      },
+      {
         path: "/usercenter/shopmanagement/ShopManagement",
         name: "usercenter-ShopManagement",
         component: () =>
@@ -460,6 +478,7 @@ const routes: Array<RouteRecordRaw> = [
           pageTitle: "充值管理",
         },
       },
+
     ],
   },
   {

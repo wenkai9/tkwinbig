@@ -23,7 +23,11 @@
       <!--end::Link-->
     </div>
     <!--begin::Form-->
-    <el-form label-width="auto" :model="formLabelAlign" style="max-width: 600px">
+    <el-form
+      label-width="auto"
+      :model="formLabelAlign"
+      style="max-width: 600px"
+    >
       <label class="form-label fs-6 fw-bold text-gray-900">username</label>
       <el-form-item>
         <el-input v-model="formLabelAlign.username" />
@@ -33,20 +37,34 @@
         <el-input v-model="formLabelAlign.password" type="password" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" style="width: 100%" @click="handleLogin">登录</el-button>
+        <el-button type="primary" style="width: 100%" @click="handleLogin"
+          >登录</el-button
+        >
       </el-form-item>
     </el-form>
     <!--end::Form-->
     <a href="#" class="btn btn-flex flex-center btn-light btn-lg w-100 mb-5">
-      <img alt="Logo" :src="getAssetPath('media/svg/brand-logos/google-icon.svg')" class="h-20px me-3" />
+      <img
+        alt="Logo"
+        :src="getAssetPath('media/svg/brand-logos/google-icon.svg')"
+        class="h-20px me-3"
+      />
       Continue with Google
     </a>
     <a href="#" class="btn btn-flex flex-center btn-light btn-lg w-100 mb-5">
-      <img alt="Logo" :src="getAssetPath('media/svg/brand-logos/facebook-4.svg')" class="h-20px me-3" />
+      <img
+        alt="Logo"
+        :src="getAssetPath('media/svg/brand-logos/facebook-4.svg')"
+        class="h-20px me-3"
+      />
       Continue with Facebook
     </a>
     <a href="#" class="btn btn-flex flex-center btn-light btn-lg w-100">
-      <img alt="Logo" :src="getAssetPath('media/svg/brand-logos/apple-black.svg')" class="h-20px me-3" />
+      <img
+        alt="Logo"
+        :src="getAssetPath('media/svg/brand-logos/apple-black.svg')"
+        class="h-20px me-3"
+      />
       Continue with Apple
     </a>
   </div>
@@ -58,8 +76,9 @@ import { getAssetPath } from "@/core/helpers/assets";
 import { reactive } from "vue";
 import { useAuthStore, type User } from "@/stores/auth";
 import { useRouter } from "vue-router";
-import { ApiHandlelogin } from '@/api/login';
-import { getFormData } from '@/utils/server'
+import { ApiHandlelogin } from "@/api/login";
+import { getFormData } from "@/utils/server";
+import { ElMessage } from "element-plus";
 const formLabelAlign = reactive({
   username: "test1",
   password: "123456789",
@@ -68,18 +87,17 @@ const store = useAuthStore();
 const router = useRouter();
 
 const handleLogin = async () => {
-  let res = await ApiHandlelogin(getFormData(formLabelAlign))
-  console.log(res, '----------');
-  if (res.code == 0) {
-    setTimeout(() => {
-      router.push({ name: "dashboard" });
-    }, 1000);
+  let res = await ApiHandlelogin(getFormData(formLabelAlign));
+  console.log(res, "----------");
+  if (res.code != 200) {
+    return;
   }
-  // ApiHandlelogin(getFormData(formLabelAlign)).then((res) => {
-  //   console.log(res,);
-  // }).catch((err)=>{
-  //   console.log(err);
-
-  // })
+  ElMessage({
+    message: res.msg,
+    type: "success",
+  });
+  setTimeout(() => {
+    router.push({ name: "dashboard" });
+  }, 1000);
 };
 </script>

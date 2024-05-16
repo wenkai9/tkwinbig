@@ -7,3 +7,11 @@ export function ApiHandlelogin(data: any) {
     data,
   });
 }
+
+export function ApiHandleRegister(data: any) {
+  return service.request({
+    url: "user/user/register",
+    method: "post",
+    data,
+  });
+}
