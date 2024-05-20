@@ -26,7 +26,7 @@
         <div>有效回复数</div>
       </div>
       <div class="grid5">
-        <div style="line-height: 50px">
+        <div class="grid5_value">
           {{ modelSummary.match_quantity_sum }}
         </div>
         <div>合作意向数</div>
@@ -99,15 +99,47 @@
         />
       </div>
     </div>
+    <div>
+      <el-dialog v-model="userDialog" title="合作用户信息">
+        <el-form
+          class="demo-form-inline"
+          style="max-width: 600px"
+          label-width="auto"
+        >
+          <el-form-item label="名称:">
+            <p>{{ userObj.username }}</p>
+          </el-form-item>
+          <el-form-item label="手机号:">
+            <p>{{ userObj.number }}</p>
+          </el-form-item>
+          <el-form-item label="邮箱:">
+            <p>{{ userObj.email }}</p>
+          </el-form-item>
+          <el-form-item label="公司:">
+            <p>{{ userObj.company }}</p>
+          </el-form-item>
+        </el-form>
+        <!-- <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="userDialog = false">取消</el-button>
+            <el-button type="primary" @click="userDialog = false">
+              确定
+            </el-button>
+          </div>
+        </template> -->
+      </el-dialog>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
 import { reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 import {
   ApiGetTasks,
   ApiGetProducts,
   ApiGetSummary,
 } from "@/api/launchmanagement";
+const router = useRouter();
 const modelTasksData = ref([]);
 let loading = ref(false);
 const pageObj = reactive({
@@ -139,8 +171,11 @@ const changeSize = (size: number) => {
   ApiGetTasks(pageObj.page, size);
 };
 
+const userDialog = ref(false);
+const userObj = ref();
 const handleJumpDetail = (row) => {
-  console.log(row, "=========");
+  userDialog.value = true;
+  userObj.value = row.user;
 };
 
 let productsTotal = ref();

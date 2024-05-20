@@ -452,6 +452,15 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
+        path: "/launchmanagement/effectdata/component/detail",
+        name: "launchmanagement-detail",
+        component: () =>
+          import("@/views/launchmanagement/effectdata/component/detail.vue"),
+        meta: {
+          pageTitle: "合作用户详情页",
+        },
+      },
+      {
         path: "/usercenter/usermanagement/UserManagement",
         name: "usercenter-UserManagement",
         component: () =>
