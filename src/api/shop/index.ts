@@ -1,9 +1,9 @@
 import service from "@/service/service";
 
 
-export function ApigetShopData(params: any, page: number) {
+export function ApigetShopData(params: any, page: number, size: number) {
   return service.request({
-    url: `user/list_shops?page=${page}`,
+    url: `user/list_shops?page=${page}&size=${size}`,
     method: "get",
     params
   });

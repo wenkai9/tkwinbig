@@ -17,13 +17,51 @@
           >导出</el-button
         >
       </div>
-      <div>
-        <el-table v-loading="loading" :data="modelData" style="width: 100%">
-          <el-table-column prop="title" label="物品名称" width="180" />
-          <el-table-column prop="description" label="物品描述" width="180" />
-          <el-table-column prop="description" label="物品标签" />
-          <el-table-column prop="description" label="物品状态" />
-          <el-table-column prop="description" label="建联规则" />
+      <div style="margin-top: 1.25rem">
+        <el-table
+          :data="modelData"
+          border
+          :header-cell-style="{
+            backgroundColor: '#f6f7fc',
+            color: '#1f283c',
+            fontSize: '14px',
+            textAlign: 'center',
+          }"
+          :cell-style="{ textAlign: 'center' }"
+          v-loading="loading"
+          style="width: 100%"
+        >
+          <el-table-column label="物品名称" width="280">
+            <template #default="scope">
+              {{ scope.row.title }}
+            </template>
+          </el-table-column>
+          <el-table-column label="物品描述" width="280">
+            <template #default="scope">
+              {{ scope.row.description }}
+            </template>
+          </el-table-column>
+          <el-table-column label="物品标签">
+            <template #default="scope">
+              {{ scope.row.match_tag }}
+            </template>
+          </el-table-column>
+          <el-table-column label="是否免费寄送样品">
+            <template #default="scope">
+              {{ SampleMap[scope.row.hasFreeSample] }}
+            </template>
+          </el-table-column>
+          <el-table-column label="佣金率">
+            <template #default="scope">
+              {{ scope.row.commissionRate }}%
+            </template>
+          </el-table-column>
+          <el-table-column label="合作费">
+            <template #default="scope">
+              {{ scope.row.CooperationFee }}
+            </template>
+          </el-table-column>
+
           <el-table-column fixed="right" label="操作" width="120">
             <template #default="scope">
               <el-button
@@ -129,13 +167,16 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import axios from "axios";
 const router = useRouter();
 const modelData = ref([]);
-const loading = ref(false);
+let loading = ref(false);
 let pageObj = reactive({
   page: 1,
   size: 10,
   total: 0,
 });
-
+const SampleMap = reactive({
+  true: "是",
+  false: "否",
+});
 const dialogVisible = ref(false);
 let formData = ref({
   product_id: "",
@@ -150,7 +191,6 @@ const GetProducts = async () => {
   try {
     loading.value = true;
     const response = await ApiGetProducts("", pageObj.page, pageObj.size);
-
     modelData.value = [...response.products];
     pageObj.total = response.total_products || 0;
   } catch (error) {
@@ -175,7 +215,7 @@ const handleEdit = (item: object) => {
   formData.value = {
     product_id: item.product_id,
     title: item.title,
-    description: item.title,
+    description: item.description,
     price: item.price,
     base_category2: item.base_category2_id,
     Product_link: item.product_link,

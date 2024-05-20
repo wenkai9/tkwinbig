@@ -97,6 +97,7 @@ const handleLogin = async () => {
     type: "success",
   });
   setTimeout(() => {
+    window.localStorage.setItem("userId", res.data.id);
     router.push({ name: "dashboard" });
   }, 1000);
 };

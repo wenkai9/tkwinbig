@@ -434,6 +434,15 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
+        path: "/launchmanagement/launchmanagement/components/addOrEdit",
+        name: "launchmanagement-addOrEdit",
+        component: () =>
+          import("@/views/launchmanagement/launchmanagement/components/addOrEdit.vue"),
+        meta: {
+          pageTitle: "新增/修改建联",
+        },
+      },
+      {
         path: "/launchmanagement/effectdata/EffectData",
         name: "launchmanagement-EffectData",
         component: () =>

@@ -11,7 +11,7 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   config => {
-    console.log(config, '请求拦截------');
+    // console.log(config, '请求拦截------');
     return config;
   },
   error => {
@@ -23,9 +23,9 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use((res) => {
-  console.log(res, '---------');
+  // console.log(res, '---------');
   let resJson = res.data
-  console.log(resJson, 'resJson');
+  // console.log(resJson, 'resJson');
 
   if (resJson.code != 200) {
     ElMessage({

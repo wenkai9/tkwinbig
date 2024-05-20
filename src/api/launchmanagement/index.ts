@@ -8,14 +8,22 @@ export function ApiGetProducts(params: any, page: number, size: number) {
   });
 }
 
-export function ApiAddProducts(data: any) {
+export function ApiAddProducts(data: any, page: number, size: number) {
   return service.request({
-    url: `/user/products/upload`,
-    method: "post",
+    url: `/user/add_products?page=${page}&size=${size}`,
+    // method: "post",
+    method: data == '' ? 'get' : 'post',
     data,
   });
 }
 
+// 查询商品所有分类all_category_products
+// export function ApiGetProductsCategory() {
+//   return service.request({
+//     url: `/user/all_category_products`,
+//     method: "get",
+//   });
+// }
 
 export function ApiUpdataProducts(data: any) {
   const formData = new FormData();
@@ -79,5 +87,22 @@ export function ApiGetTasks(tage: number, size: number) {
   return service.request({
     url: `/user/list_tasks?tage=${tage}&size=${size}`,
     method: "get",
+  });
+}
+
+// 新增建联
+export function ApiAddTasks(data) {
+  return service.request({
+    url: `/user/create_task`,
+    method: "post",
+    data
+  });
+}
+
+export function ApiGetSummary() {
+  return service.request({
+    url: `/user/tasks/summary`,
+    method: "get",
+
   });
 }
