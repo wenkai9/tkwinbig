@@ -1,10 +1,20 @@
-from django.db.models import Q
+import traceback
 from django.http import JsonResponse
-from django.contrib.auth.hashers import make_password, check_password
-from django.contrib.auth import login, authenticate, logout
 from django.views.decorators.csrf import csrf_exempt
 from .models import User
+from django.contrib.auth.hashers import make_password, check_password
+from datetime import datetime, timedelta
+import jwt
+from django.conf import settings
 import re
+
+
+def generate_jwt(user_id):
+    payload = {
+        'user_id': user_id,
+        'exp': datetime.utcnow() + timedelta(days=1)  # 设置过期时间为1天
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 
 
 @csrf_exempt
@@ -19,7 +29,7 @@ def user_register(request):
 
         # 检查是否有任何字段缺失
         if not (username and password and email and number and company):
-            return JsonResponse({'code': 1, 'errmsg': '缺少必要的参数'})
+            return JsonResponse({'code': 400, 'errmsg': '缺少必要的参数'})
 
         # 检查用户名是否已被注册
         if User.objects.filter(username=username).exists():
@@ -48,114 +58,156 @@ def user_register(request):
         user = User(username=username, password=hashed_password, email=email, number=number, company=company)
         user.save()
 
-        # 实现状态保持
-        # login(request, user)
-        res = JsonResponse({'code': 0, 'msg': '注册成功!'})
-        res.set_cookie('username', user.username, 24 * 30 * 3600)
-        return res
-        # return JsonResponse({'code': 0, 'msg': '注册成功!'})
+        # 生成 JWT
+        token = generate_jwt(user.user_id)
 
-    return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
+        # 设置JWT的Cookie
+        response = JsonResponse({'code': 200, 'msg': '注册成功!'})
+        response.set_cookie('Authorization', token)
+
+        return response
+
+    return JsonResponse({'code': 400, 'errmsg': '只允许POST请求'})
 
 
 @csrf_exempt
 def user_login(request):
     if request.method == 'POST':
-        # 获取表单提交的用户名和密码
         username = request.POST.get('username')
         password = request.POST.get('password')
         print(username, password)
+
+        if not username or not password:
+            return JsonResponse({'code': 400, 'errmsg': '用户名和密码不能为空。'})
+
         try:
-            # 查询数据库中是否存在该用户
             user = User.objects.get(username=username)
-            # 检查密码是否匹配
             if check_password(password, user.password):
-                # login(request, user)
-                res = JsonResponse({'code': 0, 'errmsg': "登录成功！"})
-                res.set_cookie('username', user.username)
-                return res
-                # return JsonResponse({'code': 0, 'msg': '登录成功!'})
+                data = {
+                    "user_id": user.user_id,
+                    "username": user.username,
+                    "number": user.number,
+                    "email": user.email,
+                    "company": user.company
+                }
+                # 生成 JWT
+                token = generate_jwt(user.user_id)
+                # print('token:', token)
+
+                # 设置JWT的Cookie
+                response = JsonResponse({'code': 200, 'msg': '登录成功！', 'data': data, 'token':token}, status=200)
+                response.set_cookie('Authorization', token)
+
+                return response
             else:
-                return JsonResponse({'code': 1, 'errmsg': '用户名或密码错误。'})
+                return JsonResponse({'code': 400, 'errmsg': '用户名或密码错误。'})
         except User.DoesNotExist:
-            return JsonResponse({'code': 1, 'errmsg': '用户不存在。'})
+            return JsonResponse({'code': 400, 'errmsg': '用户不存在。'})
+        except Exception as e:
+            traceback.print_exc()
+            return JsonResponse({'code': 500, 'errmsg': '服务器内部错误。'})
 
-    return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
+    return JsonResponse({'code': 400, 'errmsg': '只允许POST请求'})
 
 
-@csrf_exempt
 def user_profile(request):
     if request.method == 'GET':
-        # 检查是否存在名为 username 的 cookie
-        if 'username' in request.COOKIES:
-            username = request.COOKIES['username']
-            try:
-                # 查询数据库中是否存在该用户
-                user = User.objects.get(username=username)
-                user_info = {
-                    '用户名': user.username,
-                    '手机号': user.number,
-                    '邮箱': user.email
-                }
-                return JsonResponse({'code': 0, 'data': user_info})
-            except User.DoesNotExist:
-                return JsonResponse({'code': 1, 'errmsg': '用户不存在。'})
-        else:
-            return JsonResponse({'code': 1, 'errmsg': '用户未登录'})
+        # 从请求头中获取 JWT
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 400, 'errmsg': '未提供有效的身份认证'})
 
-    return JsonResponse({'code': 1, 'errmsg': '只允许GET请求'})
+        try:
+            # 解码 JWT
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+
+            # 查询用户信息
+            user = User.objects.get(user_id=user_id)
+            user_info = {
+                'username': user.username,
+                'number': user.number,
+                'email': user.email
+            }
+            return JsonResponse({'code': 200, 'data': user_info})
+        except jwt.ExpiredSignatureError:
+            traceback.print_exc()
+            return JsonResponse({'code': 400, 'errmsg': 'Token已过期'})
+        except jwt.InvalidTokenError:
+            traceback.print_exc()
+            return JsonResponse({'code': 400, 'errmsg': '无效的Token'})
+        except User.DoesNotExist:
+            traceback.print_exc()
+            return JsonResponse({'code': 400, 'errmsg': '用户不存在。'})
+        except Exception as e:
+            traceback.print_exc()
+            return JsonResponse({'code': 500, 'errmsg': '服务器内部错误。'})
+
+    return JsonResponse({'code': 400, 'errmsg': '只允许GET请求'})
 
 
 @csrf_exempt
 def change_password(request):
     if request.method == 'POST':
-        # 检查是否存在名为 username 的 cookie
-        if 'username' in request.COOKIES:
-            username = request.COOKIES['username']
-            try:
-                # 查询数据库中是否存在该用户
-                user = User.objects.get(username=username)
-                # 获取表单提交的旧密码、新密码和确认密码
-                old_password = request.POST.get('old_password')
-                new_password = request.POST.get('new_password')
-                confirm_password = request.POST.get('confirm_password')
+        # 从请求头中获取 JWT
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 400, 'errmsg': '未提供有效的身份认证'})
 
-                # 检查是否缺少必要的参数
-                if not (old_password and new_password and confirm_password):
-                    return JsonResponse({'code': 1, 'errmsg': '缺少必要的参数'})
+        try:
+            # 解码 JWT
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
 
-                # 检查旧密码是否正确
-                if not check_password(old_password, user.password):
-                    return JsonResponse({'code': 1, 'errmsg': '旧密码不正确'})
+            # 查询用户信息
+            user = User.objects.get(user_id=user_id)
 
-                # 检查新密码长度是否在8到20位之间
-                if not re.match(r'^.{8,20}$', new_password):
-                    return JsonResponse({'code': 1, 'errmsg': '新密码长度必须在8到20位之间'})
+            # 获取表单提交的旧密码、新密码和确认密码
+            old_password = request.POST.get('old_password')
+            new_password = request.POST.get('new_password')
+            confirm_password = request.POST.get('confirm_password')
 
-                # 检查新密码和确认密码是否一致
-                if new_password != confirm_password:
-                    return JsonResponse({'code': 1, 'errmsg': '两次密码不一致'})
+            # 检查是否缺少必要的参数
+            if not (old_password and new_password and confirm_password):
+                return JsonResponse({'code': 400, 'errmsg': '缺少必要的参数'})
 
-                # 对新密码进行哈希处理
-                hashed_password = make_password(new_password)
-                user.password = hashed_password
-                user.save()
+            # 检查旧密码是否正确
+            if not check_password(old_password, user.password):
+                return JsonResponse({'code': 400, 'errmsg': '旧密码不正确'})
 
-                return JsonResponse({'code': 0, 'msg': '密码修改成功'})
-            except User.DoesNotExist:
-                return JsonResponse({'code': 1, 'errmsg': '用户不存在。'})
-        else:
-            return JsonResponse({'code': 1, 'errmsg': '用户未登录'})
+            # 检查新密码长度是否在8到20位之间
+            if not re.match(r'^.{8,20}$', new_password):
+                return JsonResponse({'code': 400, 'errmsg': '新密码长度必须在8到20位之间'})
 
-    return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
+            # 检查新密码和确认密码是否一致
+            if new_password != confirm_password:
+                return JsonResponse({'code': 400, 'errmsg': '两次密码不一致'})
 
+            # 对新密码进行哈希处理
+            hashed_password = make_password(new_password)
+            user.password = hashed_password
+            user.save()
+
+            return JsonResponse({'code': 200, 'msg': '密码修改成功'})
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({'code': 400, 'errmsg': 'Token已过期'})
+        except jwt.InvalidTokenError:
+            traceback.print_exc()
+            return JsonResponse({'code': 400, 'errmsg': '无效的Token'})
+        except User.DoesNotExist:
+            return JsonResponse({'code': 400, 'errmsg': '用户不存在。'})
+        except Exception as e:
+            traceback.print_exc()
+            return JsonResponse({'code': 500, 'errmsg': '服务器内部错误。'})
+
+    return JsonResponse({'code': 400, 'errmsg': '只允许POST请求'})
 
 
 def user_logout(request):
     if request.method == 'POST':
-        # 退出本质-- session过期 或者删除session
-        logout(request)
-        res = JsonResponse({'code': 0, 'msg': '退出成功！'})
-        res.delete_cookie('username')
-        return res
-    return JsonResponse({'code': 1, 'errmsg': '只允许POST请求'})
+        response = JsonResponse({'code': 200, 'msg': '退出成功！'})
+        response.delete_cookie('Authorization')  # 删除 JWT 的 Cookie
+
+        return response
+
+    return JsonResponse({'code': 400, 'errmsg': '只允许POST请求'})
