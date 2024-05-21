@@ -1,15 +1,8 @@
 import json
-
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.views.decorators.csrf import csrf_exempt
-from datetime import datetime
-from .models import Shop
-
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 from datetime import datetime
 from .models import Shop
 
@@ -22,7 +15,6 @@ def create_shop(request):
         location = request.POST.get('location')
         description = request.POST.get('description')
 
-        # 创建店铺
         shop = Shop.objects.create(
             shop_name=shop_name,
             location=location,
@@ -30,7 +22,6 @@ def create_shop(request):
             createAt=datetime.now()
         )
 
-        # 返回创建成功的响应
         return JsonResponse({"code": 200,
                              "shopId": shop.shopId,
                              "shop_name": shop.shop_name,
@@ -41,9 +32,6 @@ def create_shop(request):
     except Exception as e:
         # 发生异常时返回错误响应
         return JsonResponse({"code": 400, "error": str(e)}, status=400)
-
-
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 @csrf_exempt
