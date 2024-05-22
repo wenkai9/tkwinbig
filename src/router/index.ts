@@ -413,6 +413,7 @@ const routes: Array<RouteRecordRaw> = [
           import("@/views/launchmanagement/itemmanagement/ItemManagement.vue"),
         meta: {
           pageTitle: "物品管理",
+          breadcrumbs: ["launchmanagement", "ItemManagement"],
         },
       },
       {

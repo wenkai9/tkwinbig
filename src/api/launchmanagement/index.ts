@@ -81,8 +81,40 @@ export function ApiExportProducts() {
 
 }
 
+// 查询建联规则列表
+export function ApiGetListRules(page: number, size: number) {
+  return service.request({
+    url: `/user/list_rules?page=${page}&size=${size}`,
+    method: "get",
+  });
+}
+//修改建联规则
+export function ApiEditRules(data: object, id: string) {
+  return service.request({
+    url: `/user/update_rule/${id}`,
+    method: "put",
+    data
+  });
+}
+// 删除建联规则
+export function ApiDeteleRules(id) {
+  return service.request({
+    url: `/user/delete_rule/${id}`,
+    method: "delete",
+  });
+}
 
-// 查询建联列表
+// 新增建联规则 
+export function ApiAddRulesRules(data: object) {
+  return service.request({
+    url: `/user/add_rules`,
+    method: "post",
+    data
+  });
+}
+
+
+// 查询任务列表
 export function ApiGetTasks(tage: number, size: number) {
   return service.request({
     url: `/user/list_tasks?tage=${tage}&size=${size}`,

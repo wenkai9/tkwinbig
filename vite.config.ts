@@ -18,12 +18,12 @@ export default defineConfig({
     port: 5016,
     proxy: {
       "/user": {
-        target: "http://192.168.31.157:8000",
+        target: "http://192.168.31.159:8000",
         changeOrigin: true,
         rewrite: (path) =>
           path.replace(
             /^\/user/,
-            "http://192.168.31.163:8000"
+            "http://192.168.31.159:8000"
           ),
       },
       "/api": {
