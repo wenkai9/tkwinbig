@@ -381,36 +381,29 @@ def download_excel(request):
         return JsonResponse({"code": 405, 'errmsg': '只支持 GET 请求'}, status=405)
 
 
+@csrf_exempt
 def list_category_products(request):
     if request.method == 'GET':
-        # 获取所有一级分类
-        all_primary_categories = base_category1.objects.all()
-        all_category_products = []
+        category_id = request.GET.get('id')
+        category_type = request.GET.get('type')
 
-        # 获取每个一级分类下的二级分类及其商品信息
-        for primary_category in all_primary_categories:
-            category_data = {
-                "primary_category_id": primary_category.id,
-                "primary_category_name": primary_category.name,
-                "secondary_categories": []
-            }
+        if category_type == '1':
+            # 查询一级分类下的二级分类和商品
+            primary_category = base_category1.objects.get(id=category_id)
             secondary_categories = base_category2.objects.filter(category1=primary_category)
+            all_category_products = []
+
             for secondary_category in secondary_categories:
                 category_products = Goods.objects.filter(base_category2=secondary_category)
 
-                # 分页逻辑
-                page_number = int(request.GET.get('page', 1))
-                page_size = 20
-                start_index = (page_number - 1) * page_size
-                end_index = start_index + page_size
-
+                # 序列化商品信息
                 serialized_products = [{
                     "id": product.id,
                     "title": product.title,
                     "description": product.description,
                     "price": str(product.price),
                     "match_tag": product.match_tag,
-                } for product in category_products[start_index:end_index]]
+                } for product in category_products]
 
                 # 构建二级分类数据
                 secondary_category_data = {
@@ -418,11 +411,62 @@ def list_category_products(request):
                     "category_name": secondary_category.name,
                     "products": serialized_products
                 }
-                category_data["secondary_categories"].append(secondary_category_data)
+                all_category_products.append(secondary_category_data)
 
-            all_category_products.append(category_data)
+            return JsonResponse({"code": 200, 'category_products': all_category_products})
 
-        return JsonResponse({"code": 200, 'category_products': all_category_products})
+        elif category_type == '2':
+            # 查询二级分类下的商品
+            category_products = Goods.objects.filter(base_category2_id=category_id)
+
+            # 序列化商品信息
+            serialized_products = [{
+                "id": product.id,
+                "title": product.title,
+                "description": product.description,
+                "price": str(product.price),
+                "match_tag": product.match_tag,
+            } for product in category_products]
+
+            return JsonResponse({"code": 200, 'products': serialized_products})
+
+        else:
+            # 如果既没有提供一级分类ID也没有提供二级分类ID，则返回参数错误提示
+            all_primary_categories = base_category1.objects.all()
+            all_category_products = []
+
+            for primary_category in all_primary_categories:
+                secondary_categories = base_category2.objects.filter(category1=primary_category)
+                primary_category_data = {
+                    "primary_category_id": primary_category.id,
+                    "primary_category_name": primary_category.name,
+                    "secondary_categories": []
+                }
+
+                for secondary_category in secondary_categories:
+                    category_products = Goods.objects.filter(base_category2=secondary_category)
+
+                    # 序列化商品信息
+                    serialized_products = [{
+                        "id": product.id,
+                        "title": product.title,
+                        "description": product.description,
+                        "price": str(product.price),
+                        "match_tag": product.match_tag,
+                    } for product in category_products]
+
+                    # 构建二级分类数据
+                    secondary_category_data = {
+                        "category_id": secondary_category.id,
+                        "category_name": secondary_category.name,
+                        "products": serialized_products
+                    }
+                    primary_category_data["secondary_categories"].append(secondary_category_data)
+
+                all_category_products.append(primary_category_data)
+
+            return JsonResponse({"code": 200, 'category_products': all_category_products})
+
     else:
         return JsonResponse({"code": 405, 'errmsg': '只支持 GET 请求'}, status=405)
 
