@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ObjectDoesNotExist
 from ..shops.models import Shop
-from .models import base_category1, base_category2, Goods
+from .models import base_category1, base_category2, Goods, RaidsysRule
 from openpyxl import Workbook
 from djangoProject1 import settings
 
@@ -38,7 +38,9 @@ def add_product(request, page=None):
                 match_tag=match_tag,
                 hasFreeSample=data['hasFreeSample'],
                 commissionRate=data['commissionRate'],
-                CooperationFee=data['CooperationFee']
+                CooperationFee=data['CooperationFee'],
+                product_status=0  # 商品默认状态为0，表示未建联
+
             )
             data = {
                 "product_id": product.id,
@@ -52,6 +54,8 @@ def add_product(request, page=None):
                 "hasFreeSample": product.hasFreeSample,
                 "commissionRate": product.commissionRate,
                 "CooperationFee": product.CooperationFee,
+                "product_status": product.product_status,
+                "raidsysrule_id": product.raidsysrule_id,
                 "createdAt": str(product.createdAt)
             }
             return JsonResponse({"code": 200, "msg": "商品添加成功", "data": data}, status=200)
@@ -101,6 +105,19 @@ def list_products(request, page=None):
                 products = paginator.page(1)
             except EmptyPage:
                 products = paginator.page(paginator.num_pages)
+
+            # 根据 raidsysrule_id 获取任务名称
+            for product in products:
+                raidsysrule_id = product.raidsysrule_id
+                try:
+                    rule = RaidsysRule.objects.get(id=raidsysrule_id)
+                    rule_name = rule.name
+                except RaidsysRule.DoesNotExist:
+                    rule_name = None
+
+                # 将任务名称添加到 serialized_products 中
+                product.rule_name = rule_name
+
             serialized_products = [{
                 "product_id": product.id,
                 "title": product.title,
@@ -113,6 +130,8 @@ def list_products(request, page=None):
                 "hasFreeSample": product.hasFreeSample,
                 "commissionRate": product.commissionRate,
                 "CooperationFee": product.CooperationFee,
+                "product_status": product.product_status,
+                "rule_name": product.rule_name,
                 "createdAt": str(product.createdAt)
             } for product in products]
             return JsonResponse({
@@ -145,6 +164,8 @@ def get_product(request, product_id):
                 "hasFreeSample": product.hasFreeSample,
                 "commissionRate": product.commissionRate,
                 "CooperationFee": product.CooperationFee,
+                "product_status": product.product_status,
+                "raidsysrule_id": product.raidsysrule_id,
                 "createdAt": str(product.createdAt)
             }
             return JsonResponse({"code": 200, "data": data}, status=200)
@@ -166,7 +187,10 @@ def update_product(request, product_id):
             description = data.get('description')
             if not title or not description:
                 return JsonResponse({"code": 400, 'errmsg': '标题和描述为必填项'}, status=400)
-
+            # try:
+            #     RaidsysRule.objects.get(pk=data['id'])
+            # except ObjectDoesNotExist:
+            #     return JsonResponse({"code": 400, 'errmsg': '建联规则不存在'}, status=400)
             product = Goods.objects.get(id=product_id)
             # 更新商品信息
             product.title = title
@@ -178,8 +202,9 @@ def update_product(request, product_id):
             product.hasFreeSample = data.get('hasFreeSample', product.hasFreeSample)
             product.commissionRate = data.get('commissionRate', product.commissionRate)
             product.CooperationFee = data.get('CooperationFee', product.CooperationFee)
+            # product.product_status = 1  # 商品状态改为1，表示已建联
+            # product.raidsysrule_id = data['id']
             product.save()
-            # 返回更新后的商品信息
             data = {
                 "product_id": product.id,
                 "title": product.title,
@@ -192,6 +217,8 @@ def update_product(request, product_id):
                 "hasFreeSample": product.hasFreeSample,
                 "commissionRate": product.commissionRate,
                 "CooperationFee": product.CooperationFee,
+                # "product_status": product.product_status,
+                # "raidsysrule_id": product.raidsysrule_id,
                 "updatedAt": str(product.updatedAt)
             }
             return JsonResponse({"code": 200, "msg": "商品信息更新成功", "data": data}, status=200)
@@ -199,8 +226,6 @@ def update_product(request, product_id):
             return JsonResponse({"code": 404, 'errmsg': '商品不存在'}, status=404)
         except Exception as e:
             return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
-    else:
-        return JsonResponse({"code": 405, 'errmsg': '只支持 PUT 请求'}, status=405)
 
 
 @csrf_exempt
@@ -245,7 +270,8 @@ def upload_csv(request):
                 "商品二级类目id": row[6],
                 "商品链接": row[7],
                 "商品的店铺id": row[8],
-                "匹配标签": match_tag
+                "匹配标签": match_tag,
+                "物品状态": False
             }
             products.append(product)
 
@@ -262,7 +288,8 @@ def upload_csv(request):
                     base_category2_id=product['商品二级类目id'],
                     product_link=product['商品链接'],
                     shop_id=product['商品的店铺id'],
-                    match_tag=product['匹配标签']
+                    match_tag=product['匹配标签'],
+                    product_status=0  # 商品默认状态为0，表示未建联
                 )
             except Exception as e:
                 return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
@@ -400,3 +427,112 @@ def list_category_products(request):
         return JsonResponse({"code": 405, 'errmsg': '只支持 GET 请求'}, status=405)
 
 
+# from .models import RaidsysRule
+#
+#
+@csrf_exempt
+def add_rule(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            rule = RaidsysRule.objects.create(
+                name=data['name'],
+                requirement=data['requirement'],
+                commission=data.get('commission'),
+                shop_info=data.get('shop_info', '')
+            )
+            response_data = {
+                "id": rule.id,
+                "name": rule.name,
+                "requirement": rule.requirement,
+                "commission": str(rule.commission) if rule.commission is not None else None,
+                "shop_info": str(rule.shop_info) if rule.shop_info is not None else None,
+                "createdAt": str(rule.createdAt)
+            }
+            return JsonResponse({"code": 200, "msg": "规则添加成功", "data": response_data}, status=200)
+        except KeyError as e:
+            return JsonResponse({"code": 400, "errmsg": f"缺少必要字段: {str(e)}"}, status=400)
+        except Exception as e:
+            return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
+    else:
+        return JsonResponse({"code": 405, "errmsg": "只允许POST请求"}, status=405)
+
+
+@csrf_exempt
+def list_rule(request, page=None):
+    if request.method == 'GET':
+        try:
+            size = int(request.GET.get('size', 10))  # 如果未提供，默认为 10
+            all_rules = RaidsysRule.objects.all().order_by('id')
+            paginator = Paginator(all_rules, size)
+            page_number = request.GET.get('page')
+            try:
+                rules = paginator.page(page_number)
+            except PageNotAnInteger:
+                rules = paginator.page(1)
+            except EmptyPage:
+                rules = paginator.page(paginator.num_pages)
+            serialized_rules = [{
+                "id": rule.id,
+                "name": rule.name,
+                "requirement": rule.requirement,
+                "commission": rule.commission,
+                "shop_info": rule.shop_info,
+                "createdAt": str(rule.createdAt)
+            } for rule in rules]
+            return JsonResponse({
+                "code": 200,
+                "rules": serialized_rules,
+                "page": rules.number,
+                "total_pages": paginator.num_pages,
+                "total_rules": paginator.count
+            })
+        except Exception as e:
+            return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
+    else:
+        return JsonResponse({"code": 405, 'errmsg': '仅支持 GET 请求'}, status=405)
+
+
+@csrf_exempt
+def update_rule(request, id):
+    if request.method == 'PUT':
+        try:
+            data = json.loads(request.body)
+            rule = RaidsysRule.objects.get(id=id)
+            rule.name = data['name']
+            rule.requirement = data['requirement']
+            rule.commission = data.get('commission')
+            rule.shop_info = data.get('shop_info', '')
+            rule.save()
+            response_data = {
+                "id": rule.id,
+                "name": rule.name,
+                "requirement": rule.requirement,
+                "commission": str(rule.commission) if rule.commission is not None else None,
+                # "shop_info": rule.shop_info,
+                "createdAt": str(rule.createdAt)
+            }
+            return JsonResponse({"code": 200, "msg": "规则更新成功", "data": response_data}, status=200)
+        except KeyError as e:
+            return JsonResponse({"code": 400, "errmsg": f"缺少必要字段: {str(e)}"}, status=400)
+        except RaidsysRule.DoesNotExist:
+            return JsonResponse({"code": 404, "errmsg": "规则不存在"}, status=404)
+        except Exception as e:
+            return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
+    else:
+        return JsonResponse({"code": 405, "errmsg": "只允许PUT请求"}, status=405)
+
+
+@csrf_exempt
+def delete_rule(request, rule_id):
+    if request.method == 'DELETE':
+        try:
+            rule = RaidsysRule.objects.get(id=rule_id)
+            rule.delete()
+            return JsonResponse({"code": 200, "msg": "规则删除成功"}, status=200)
+        except RaidsysRule.DoesNotExist:
+            return JsonResponse({"code": 404, "errmsg": "规则不存在"}, status=404)
+        except Exception as e:
+            return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
+    else:
+        return JsonResponse({"code": 405, "errmsg": "只允许DELETE请求"}, status=405)

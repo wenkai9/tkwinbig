@@ -25,7 +25,26 @@ class base_category2(models.Model):
         db_table = 'base_category2'
 
 
+class RaidsysRule(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50)
+    requirement = models.TextField()
+    commission = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    shop_info = models.CharField(max_length=100, null=True)
+    createdAt = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'tk_raidsys_rule'
+
+
 class Goods(models.Model):
+    GOODS_STATUS_CHOICES = (
+        (False, '未建联'),
+        (True, '已经建联'),
+    )
     id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=100)
     description = models.TextField()
@@ -37,6 +56,8 @@ class Goods(models.Model):
     product_link = models.TextField()
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
     match_tag = models.CharField(max_length=100)
+    product_status = models.BooleanField(choices=GOODS_STATUS_CHOICES, default=False)
+    raidsysrule = models.ForeignKey(RaidsysRule, on_delete=models.CASCADE, null=True)
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
 
