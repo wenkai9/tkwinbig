@@ -10,9 +10,10 @@ import re
 
 
 def generate_jwt(user_id):
+    expiration_time = datetime.utcnow() + timedelta(days=1)  # 设置过期时间为1天
     payload = {
         'user_id': user_id,
-        'exp': datetime.utcnow() + timedelta(days=1)  # 设置过期时间为1天
+        'exp': expiration_time
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 
@@ -75,7 +76,6 @@ def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        print(username, password)
 
         if not username or not password:
             return JsonResponse({'code': 400, 'errmsg': '用户名和密码不能为空。'})
@@ -92,10 +92,12 @@ def user_login(request):
                 }
                 # 生成 JWT
                 token = generate_jwt(user.user_id)
-                # print('token:', token)
+
+                # 删除旧的 token（如果存在）
+                response = JsonResponse({'code': 200, 'msg': '登录成功！', 'data': data, 'token': token}, status=200)
+                response.delete_cookie('Authorization')
 
                 # 设置JWT的Cookie
-                response = JsonResponse({'code': 200, 'msg': '登录成功！', 'data': data, 'token':token}, status=200)
                 response.set_cookie('Authorization', token)
 
                 return response
@@ -104,7 +106,6 @@ def user_login(request):
         except User.DoesNotExist:
             return JsonResponse({'code': 400, 'errmsg': '用户不存在。'})
         except Exception as e:
-            traceback.print_exc()
             return JsonResponse({'code': 500, 'errmsg': '服务器内部错误。'})
 
     return JsonResponse({'code': 400, 'errmsg': '只允许POST请求'})
