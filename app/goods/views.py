@@ -405,15 +405,10 @@ def list_category_products(request):
                     "match_tag": product.match_tag,
                 } for product in category_products]
 
-                # 构建二级分类数据
-                secondary_category_data = {
-                    "category_id": secondary_category.id,
-                    "category_name": secondary_category.name,
-                    "products": serialized_products
-                }
-                all_category_products.append(secondary_category_data)
+                all_category_products.extend(serialized_products)
 
-            return JsonResponse({"code": 200, 'category_products': all_category_products})
+            return JsonResponse({"code": 200, 'sub': all_category_products})
+
 
         elif category_type == '2':
             # 查询二级分类下的商品
@@ -438,35 +433,62 @@ def list_category_products(request):
             for primary_category in all_primary_categories:
                 secondary_categories = base_category2.objects.filter(category1=primary_category)
                 primary_category_data = {
-                    "primary_category_id": primary_category.id,
-                    "primary_category_name": primary_category.name,
-                    "secondary_categories": []
+                    "id": primary_category.id,
+                    "name": primary_category.name,
+                    "sub": []
                 }
 
                 for secondary_category in secondary_categories:
                     category_products = Goods.objects.filter(base_category2=secondary_category)
 
-                    # 序列化商品信息
-                    serialized_products = [{
-                        "id": product.id,
-                        "title": product.title,
-                        "description": product.description,
-                        "price": str(product.price),
-                        "match_tag": product.match_tag,
-                    } for product in category_products]
-
                     # 构建二级分类数据
                     secondary_category_data = {
-                        "category_id": secondary_category.id,
-                        "category_name": secondary_category.name,
-                        "products": serialized_products
+                        "id": secondary_category.id,
+                        "name": secondary_category.name,
                     }
-                    primary_category_data["secondary_categories"].append(secondary_category_data)
+                    primary_category_data["sub"].append(secondary_category_data)
 
                 all_category_products.append(primary_category_data)
 
-            return JsonResponse({"code": 200, 'category_products': all_category_products})
+            return JsonResponse({"code": 200, 'sub': all_category_products})
 
+    else:
+        return JsonResponse({"code": 405, 'errmsg': '只支持 GET 请求'}, status=405)
+
+
+@csrf_exempt
+def list_products_all(request):
+    if request.method == 'GET':
+        category_id = request.GET.get('id')  # 获取请求中的 id 参数
+        category_type = request.GET.get('type')  # 获取请求中的 type 参数
+
+        try:
+            if category_type == 'lv_1':
+                # 查询一级分类下的二级分类下的商品
+                secondary_categories = base_category2.objects.filter(category1_id=category_id)
+                data = Goods.objects.filter(base_category2__in=secondary_categories).values('id', 'title',
+                                                                                            'description', 'price',
+                                                                                            'base_category2_id',
+                                                                                            'product_link', 'match_tag',
+                                                                                            'hasFreeSample',
+                                                                                            'commissionRate',
+                                                                                            'CooperationFee')
+            elif category_type == 'lv_2':
+                # 查询二级分类下的商品
+                data = Goods.objects.filter(base_category2_id=category_id).values('id', 'title', 'description', 'price',
+                                                                                  'base_category2_id',
+                                                                                  'product_link', 'match_tag',
+                                                                                  'hasFreeSample', 'commissionRate',
+                                                                                  'CooperationFee')
+            else:
+                # 如果没有提供类别类型，则返回所有商品
+                data = Goods.objects.all().values('id', 'title', 'description', 'price', 'base_category2_id',
+                                                  'product_link', 'match_tag', 'hasFreeSample', 'commissionRate',
+                                                  'CooperationFee')
+
+            return JsonResponse({"code": 200, "data": list(data)}, status=200)
+        except Exception as e:
+            return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
     else:
         return JsonResponse({"code": 405, 'errmsg': '只支持 GET 请求'}, status=405)
 

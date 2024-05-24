@@ -20,6 +20,7 @@ urlpatterns = [
     path('download_excel', views.download_excel, name='download_excel'),
     # 获取全部类目下的商品信息
     path('all_category_products', views.list_category_products, name='all_category_products'),
+    path('all_produts', views.list_products_all, name='all_produts'),
     # 新增规则
     path('add_rules', views.add_rule, name='add_rules'),
     # 建联列表
