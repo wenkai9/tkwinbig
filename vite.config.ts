@@ -18,12 +18,18 @@ export default defineConfig({
     port: 5016,
     proxy: {
       "/user": {
+        // 文杰
         target: "http://192.168.31.159:8000",
+        // localhost
+        // target: "http://192.168.31.236:8000",
         changeOrigin: true,
         rewrite: (path) =>
           path.replace(
             /^\/user/,
+            // 文杰
             "http://192.168.31.159:8000"
+            // localhost
+            // "http://192.168.31.236:8000"
           ),
       },
       "/api": {

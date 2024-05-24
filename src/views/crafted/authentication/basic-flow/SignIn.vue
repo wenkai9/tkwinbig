@@ -79,6 +79,7 @@ import { useRouter } from "vue-router";
 import { ApiHandlelogin } from "@/api/login";
 import { getFormData } from "@/utils/server";
 import { ElMessage } from "element-plus";
+import Cookies from "js-cookie";
 const formLabelAlign = reactive({
   username: "test1",
   password: "123456789",
@@ -97,6 +98,9 @@ const handleLogin = async () => {
     type: "success",
   });
   setTimeout(() => {
+    console.log(res.token, "res.data.token");
+
+    Cookies.set("Authorization", res.token);
     window.localStorage.setItem("userId", res.data.id);
     router.push({ name: "dashboard" });
   }, 1000);
