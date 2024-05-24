@@ -18,12 +18,20 @@ export function ApiAddProducts(data: any, page: number, size: number) {
 }
 
 // 查询商品所有分类all_category_products
-// export function ApiGetProductsCategory() {
-//   return service.request({
-//     url: `/user/all_category_products`,
-//     method: "get",
-//   });
-// }
+export function ApiGetProductsCategory() {
+  return service.request({
+    url: `/user/all_category_products`,
+    method: "get",
+  });
+}
+// 商品列表
+export function ApiGetProductsList(id: string, type: string) {
+  return service.request({
+    url: `/user/all_produts?id=${id}&type=${type}`,
+    method: "get",
+  });
+}
+
 
 export function ApiUpdataProducts(data: any) {
   const formData = new FormData();
@@ -138,3 +146,4 @@ export function ApiGetSummary() {
 
   });
 }
+

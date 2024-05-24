@@ -73,6 +73,9 @@ const MainMenuConfig: Array<MenuItem> = [
           {
             heading: "效果数据",
             route: "/launchmanagement/effectdata/EffectData",
+          }, {
+            heading: "商品展示",
+            route: "/launchmanagement/goods/index",
           }
         ]
       },

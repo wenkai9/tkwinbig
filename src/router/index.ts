@@ -453,6 +453,15 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
+        path: "/launchmanagement/goods/index",
+        name: "launchmanagement-goods",
+        component: () =>
+          import("@/views/launchmanagement/goods/index.vue"),
+        meta: {
+          pageTitle: "商品展示",
+        },
+      },
+      {
         path: "/launchmanagement/effectdata/component/detail",
         name: "launchmanagement-detail",
         component: () =>
