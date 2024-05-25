@@ -1,0 +1,39 @@
+polardb:
+  host: tkwinbig.rwlb.rds.aliyuncs.com
+  port: 3306
+  user: tkwinbig
+  password: tkwinbig@321
+  database: tkwinbig_test
+
+vecdb:
+  api_key: sk-ACgdN8fIJ2kwaQZOCw29Sn53qPBSlBBB09CAEEF2B11EEB25AC224AF153912
+  endpoint: vrs-cn-36z3odypj0005s.dashvector.cn-hangzhou.aliyuncs.com
+
+qwen:
+  dashscope:
+    api_key: sk-eec49836751644339ce2b7488f63d9cb
+  model_name: qwen1.5-72b-chat
+
+template:
+  b_name: Victoria
+  brand: Vexloria
+  u_name: Maxim
+  p_info: Vexloria -- a new brand focusing on 5 in 1 shaver
+  link: https://shop.tiktok.com/view/product/1729401957854974731?region=US&locale=en
+  reward: '''
+  -Free Product
+  -20% Sales Commission
+  -Promote your video / send gifts in your live'''
+  requirement: '''
+  -A 30 - 60 seconds video showing our product and post the video on your TikTok channel with our TikTok product link or put our link in your linktree.
+  -Do not forget to maintain your own creation style which is very important in making your content unique!'''
+  limits: 200 dollars
+
+user_retrival:
+  user_emb_table: user_nlp1
+  vtag_cluster_table: none
+  vtag_emb_table: none
+  vtag_cluster_emb_table: tag_nlp_1
+  user_vtag_cluster_graphemb_table: tk_creator_goods_emb_v3
+  sentence_emb_model: damo/nlp_gte_sentence-embedding_english-small
+  user_retrival_result_table_prefix: t_userids_retrival
