@@ -73,40 +73,43 @@ def start_task(request, taskId):
 
 def list_tasks(request, page=None):
     if request.method == 'GET':
-        all_tasks = Task.objects.all().order_by('taskId')
-        total_tasks = all_tasks.count()
-        # 从请求中获取 size 参数，如果未提供，默认为 10
-        size = int(request.GET.get('size', 10))
-        paginator = Paginator(all_tasks, size)
         try:
-            tasks = paginator.page(page)
-        except PageNotAnInteger:
-            tasks = paginator.page(1)
-        except EmptyPage:
-            tasks = paginator.page(paginator.num_pages)
-        serialized_tasks = []
-        for task in tasks:
-            serialized_task = {
-                'taskId': task.taskId,
-                'name': task.name,
-                'product_title': Goods.objects.get(id=task.product_id).title,
-                'status': {"1": "未启动", "2": "正在进行", "3": "已完成"}[task.status],
-                'send_quantity': task.send_quantity,
-                'willing_quantity': task.willing_quantity,
-                'match_quantity': task.match_quantity,
-                'createAt': task.createAt.strftime('%Y-%m-%d %H:%M:%S'),
-                # 包含用户信息
-                'user': {
-                    'id': task.user.user_id,
-                    'username': task.user.username,
-                    'email': task.user.email,
-                    'number': task.user.number,
-                    'company': task.user.company
+            all_tasks = Task.objects.all().order_by('taskId')
+            total_tasks = all_tasks.count()
+            # 从请求中获取 size 参数，如果未提供，默认为 10
+            size = int(request.GET.get('size', 10))
+            paginator = Paginator(all_tasks, size)
+            try:
+                tasks = paginator.page(page)
+            except PageNotAnInteger:
+                tasks = paginator.page(1)
+            except EmptyPage:
+                tasks = paginator.page(paginator.num_pages)
+            serialized_tasks = []
+            for task in tasks:
+                serialized_task = {
+                    'taskId': task.taskId,
+                    'name': task.name,
+                    'product_title': Goods.objects.get(id=task.product_id).title,
+                    'status': {"1": "未启动", "2": "正在进行", "3": "已完成"}[task.status],
+                    'send_quantity': task.send_quantity,
+                    'willing_quantity': task.willing_quantity,
+                    'match_quantity': task.match_quantity,
+                    'createAt': task.createAt.strftime('%Y-%m-%d %H:%M:%S'),
+                    # 包含用户信息
+                    'user': {
+                        'id': task.user.user_id,
+                        'username': task.user.username,
+                        'email': task.user.email,
+                        'number': task.user.number,
+                        'company': task.user.company
+                    }
                 }
-            }
-            serialized_tasks.append(serialized_task)
-        return JsonResponse(
-            {"code": 200, "tasks": serialized_tasks, "page": tasks.number, "total_tasks": total_tasks})
+                serialized_tasks.append(serialized_task)
+            return JsonResponse(
+                {"code": 200, "tasks": serialized_tasks, "page": tasks.number, "total_tasks": total_tasks})
+        except Exception as e:
+            return JsonResponse({'code': 500, 'errmsg': str(e)}, status=500)
     else:
         return JsonResponse({'code': 405, 'errmsg': '请求方法不支持'}, status=400)
 
