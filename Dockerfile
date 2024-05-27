@@ -7,11 +7,11 @@ WORKDIR /app
 # 复制项目文件到容器中
 COPY . /app
 
-# 安装项目依赖项
-RUN pip install --no-cache-dir -r requirements.txt
+#配置安装依赖
+RUN python -m pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple
 
-# 设置环境变量
-ENV DJANGO_SETTINGS_MODULE=django_project1.settings
+# 安装依赖
+RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 暴露容器的8000端口
 EXPOSE 8000
