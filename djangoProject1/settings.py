@@ -108,7 +108,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         "NAME": "tkwinbig_test",
         "USER": "tkwinbig3",
-        "PASSWORD": "306012swj+",
+        "PASSWORD": "306012swj=",
         "HOST": "tkwinbig.mysql.polardb.rds.aliyuncs.com",
         "PORT": 3306,
     }
