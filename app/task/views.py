@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Task
+import requests
 from ..goods.models import Goods
 from ..shops.models import Shop
 from ..users.models import User
@@ -169,6 +170,40 @@ def retrieval(request):
                 return JsonResponse({"code": 200, "data": retrieval_result}, status=200)
             else:
                 return JsonResponse({"code": response.status_code, "errmsg": "检索接口请求失败"},
+                                    status=response.status_code)
+        except Exception as e:
+            return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
+    else:
+        return JsonResponse({"code": 405, "errmsg": "请求方法不支持"}, status=405)
+
+
+'''
+对话接口，http://120.27.208.224:8002/chat，参数{"creator": "Maxim","content": ""}
+'''
+
+
+@csrf_exempt
+def chat(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            required_fields = ['creator', 'content']
+            for field in required_fields:
+                if field not in data:
+                    return JsonResponse({"code": 400, "errmsg": f"缺少字段： {field}"}, status=400)
+
+            params = {
+                "creator": data.get('creator'),
+                "content": data.get('content')
+            }
+
+            response = requests.post("http://120.27.208.224:8002/chat", json=params)
+
+            if response.status_code == 200:
+                chat_result = response.json()
+                return JsonResponse({"code": 200, "data": chat_result}, status=200)
+            else:
+                return JsonResponse({"code": response.status_code, "errmsg": "对话接口请求失败"},
                                     status=response.status_code)
         except Exception as e:
             return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)

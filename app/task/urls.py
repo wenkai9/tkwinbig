@@ -13,5 +13,8 @@ urlpatterns = [
     path('tasks/summary', views.get_tasks_sum, name='tasks_summary'),
     # 删除任务
     path('delete_task/<int:taskId>', views.delete_task, name='delete_task'),
+    # 向量检索
     path('retrieval', views.retrieval, name='retrieval'),
+    # chat对话
+    path('chat', views.chat, name='chat'),
 ]
