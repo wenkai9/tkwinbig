@@ -17,4 +17,6 @@ urlpatterns = [
     path('retrieval', views.retrieval, name='retrieval'),
     # chat对话
     path('chat', views.chat, name='chat'),
+    # rpa私信
+    path('tiktok_im', views.tiktok_im, name='rpa_chat'),
 ]

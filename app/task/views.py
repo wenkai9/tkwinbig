@@ -1,10 +1,9 @@
 from django.db.models import Sum
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .models import Task
 import requests
+from .models import Task
 from ..goods.models import Goods
 from ..shops.models import Shop
 from ..users.models import User
@@ -52,7 +51,7 @@ def create_task(request):
         except KeyError as e:
             return JsonResponse({"code": 400, "errmsg": f"缺少字段： {e}"}, status=400)
         except Exception as e:
-            return JsonResponse({"code": 400, "errmsg": str(e)}, status=404)
+            return JsonResponse({"code": 404, "errmsg": str(e)}, status=404)
 
 
 @csrf_exempt
@@ -69,10 +68,7 @@ def start_task(request, taskId):
         except Task.DoesNotExist:
             return JsonResponse({'code': 400, 'errmsg': '未找到任务'}, status=400)
     else:
-        return JsonResponse({'code': 400, 'errmsg': '请求方法不支持'}, status=400)
-
-
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+        return JsonResponse({'code': 405, 'errmsg': '请求方法不支持'}, status=400)
 
 
 def list_tasks(request, page=None):
@@ -112,7 +108,7 @@ def list_tasks(request, page=None):
         return JsonResponse(
             {"code": 200, "tasks": serialized_tasks, "page": tasks.number, "total_tasks": total_tasks})
     else:
-        return JsonResponse({'code': 400, 'errmsg': '请求方法不支持'}, status=400)
+        return JsonResponse({'code': 405, 'errmsg': '请求方法不支持'}, status=400)
 
 
 @csrf_exempt
@@ -205,6 +201,40 @@ def chat(request):
             else:
                 return JsonResponse({"code": response.status_code, "errmsg": "对话接口请求失败"},
                                     status=response.status_code)
+        except Exception as e:
+            return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
+    else:
+        return JsonResponse({"code": 405, "errmsg": "请求方法不支持"}, status=405)
+
+
+'''
+rpa发私信接口 
+'''
+
+
+@csrf_exempt
+def tiktok_im(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            required_fields = ['type', 'region', 'refTaskId', 'shopId', 'content']
+            for field in required_fields:
+                if field not in data:
+                    return JsonResponse({"code": 400, "errmsg": f"缺少字段： {field}"}, status=400)
+
+            token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIzZGY3NDU5ZC1mMDJhLTQ3ZWEtODhmZC1jMDAwMzQzMmE4ZTkiLCJ1bmlxdWVfbmFtZSI6ImhjaGVuIiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20iLCJnaXZlbl9uYW1lIjoiSGFpcGluZyIsImZhbWlseV9uYW1lIjoiQ2hlbiIsInNvdXJjZSI6ImludGVybmFsIiwiZXh0ZXJuYWxfaWQiOiIiLCJqdGkiOiI1N2I5NjY4Yi1lZGVhLTQyYzktOTQwYS02ZTU2MjQ0MDMzNjEiLCJuYmYiOjE3MTU2NjQzMTYsImV4cCI6MTcxNTY3MTUxNiwiaWF0IjoxNzE1NjY0MzE2LCJpc3MiOiJib3RzaGFycCIsImF1ZCI6ImJvdHNoYXJwIn0.b0FBJvZ6WOInY8GuAin68ysL2B2AWh-CvLs5FwJuU3Q'
+            token = 'Bearer ' + token
+            url = 'https://qtoss-connect-dev.azurewebsites.net/qtoss-connect/tiktok/im'
+            headers = {'Content-Type': 'application/json', 'Authorization': token}
+
+            tt = requests.post(url=url, headers=headers, json=data)
+            res = tt.json()
+
+            if tt.status_code == 200:
+                return JsonResponse({"code": 200, "msg": "私信发送成功", "data": res}, status=200)
+            else:
+                return JsonResponse({"code": tt.status_code, "errmsg": "对话接口请求失败"},
+                                    status=tt.status_code)
         except Exception as e:
             return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
     else:
