@@ -13,4 +13,5 @@ urlpatterns = [
     path('tasks/summary', views.get_tasks_sum, name='tasks_summary'),
     # 删除任务
     path('delete_task/<int:taskId>', views.delete_task, name='delete_task'),
+    path('retrieval', views.retrieval, name='retrieval'),
 ]

@@ -139,3 +139,38 @@ def delete_task(request, taskId):
             return JsonResponse({'code': 400, 'errmsg': '未找到任务'}, status=400)
     else:
         return JsonResponse({'code': 400, 'errmsg': '请求方法不支持'}, status=400)
+
+
+'''
+检索接口，http://120.27.208.224:8002/retrival，参数{"task_id": "id1","shop_id": "xyzzz12","text":"item1,item2,item3"}
+'''
+
+
+@csrf_exempt
+def retrieval(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            required_fields = ['task_id', 'shop_id', 'text']
+            for field in required_fields:
+                if field not in data:
+                    return JsonResponse({"code": 400, "errmsg": f"缺少字段： {field}"}, status=400)
+
+            params = {
+                "task_id": data.get('task_id'),
+                "shop_id": data.get('shop_id'),
+                "text": data.get('text')
+            }
+
+            response = requests.post("http://120.27.208.224:8002/retrival", json=params)
+
+            if response.status_code == 200:
+                retrieval_result = response.json()
+                return JsonResponse({"code": 200, "data": retrieval_result}, status=200)
+            else:
+                return JsonResponse({"code": response.status_code, "errmsg": "检索接口请求失败"},
+                                    status=response.status_code)
+        except Exception as e:
+            return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
+    else:
+        return JsonResponse({"code": 405, "errmsg": "请求方法不支持"}, status=405)
