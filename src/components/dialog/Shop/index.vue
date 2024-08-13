@@ -38,8 +38,8 @@
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="shopDialog = false">Cancel</el-button>
-          <el-button type="primary" @click="shopDialog = false">
+          <el-button @click="props.shopDialog = false">Cancel</el-button>
+          <el-button type="primary" @click="props.shopDialog = false">
             Confirm
           </el-button>
         </div>
@@ -50,8 +50,10 @@
 <script setup lang="ts">
 import { reactive, ref, defineProps, defineEmits } from "vue";
 import { ApiAddProducts } from "@/api/launchmanagement";
+import { string } from "yup";
 const props = defineProps({
   shopDialog: Boolean,
+  task_id: String,
 });
 
 const emit = defineEmits(["handleClose", "choiceShop"]);

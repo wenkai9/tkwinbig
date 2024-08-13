@@ -461,6 +461,7 @@ const routes: Array<RouteRecordRaw> = [
           pageTitle: "商品展示",
         },
       },
+
       {
         path: "/launchmanagement/effectdata/component/detail",
         name: "launchmanagement-detail",
@@ -506,7 +507,43 @@ const routes: Array<RouteRecordRaw> = [
           pageTitle: "充值管理",
         },
       },
+      {
+        path: "/rpa/rpa/index",
+        name: "rpa-rpa",
+        component: () =>
+          import("@/views/rpa/rpa/index.vue"),
+        meta: {
+          pageTitle: "RPA私信",
+        },
+      },
 
+      {
+        path: "/rpa/rpainvitation/index",
+        name: "launchmanagement-rpainvitation",
+        component: () =>
+          import("@/views/rpa/rpainvitation/index.vue"),
+        meta: {
+          pageTitle: "RPA建联",
+        },
+      },
+      {
+        path: "/productsearch/index",
+        name: "productsearch-search",
+        component: () =>
+          import("@/views/productsearch/index.vue"),
+        meta: {
+          pageTitle: "商品检索",
+        },
+      },
+      {
+        path: "/chat/index",
+        name: "chat-chat",
+        component: () =>
+          import("@/views/chat/index.vue"),
+        meta: {
+          pageTitle: "chat对话",
+        },
+      }
     ],
   },
   {

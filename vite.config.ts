@@ -19,7 +19,7 @@ export default defineConfig({
     proxy: {
       "/user": {
         // 文杰
-        target: "http://192.168.31.159:8000",
+        target: "http://192.168.31.240:8833",
         // localhost
         // target: "http://192.168.31.236:8000",
         changeOrigin: true,
@@ -27,7 +27,22 @@ export default defineConfig({
           path.replace(
             /^\/user/,
             // 文杰
-            "http://192.168.31.159:8000"
+            "http://192.168.31.240:8833"
+            // localhost
+            // "http://192.168.31.236:8000"
+          ),
+      },
+      "/qtoss-connect": {
+        // 文杰
+        target: "https://qtoss-connect-dev.azurewebsites.net",
+        // localhost
+        // target: "http://192.168.31.236:8000",
+        changeOrigin: true,
+        rewrite: (path) =>
+          path.replace(
+            /^\/user/,
+            // 文杰
+            "https://qtoss-connect-dev.azurewebsites.net"
             // localhost
             // "http://192.168.31.236:8000"
           ),

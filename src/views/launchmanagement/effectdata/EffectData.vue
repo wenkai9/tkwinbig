@@ -99,34 +99,74 @@
         />
       </div>
     </div>
+    <!-- 投放任务 -->
     <div>
       <el-dialog v-model="userDialog" title="合作用户信息">
-        <el-form
-          class="demo-form-inline"
-          style="max-width: 600px"
-          label-width="auto"
+        <el-table
+          :data="modelRpaTasksData"
+          :header-cell-style="{
+            backgroundColor: '#f6f7fc',
+            color: '#1f283c',
+            fontSize: '14px',
+            textAlign: 'center',
+          }"
+          :cell-style="{ textAlign: 'center' }"
         >
-          <el-form-item label="名称:">
-            <p>{{ userObj.username }}</p>
-          </el-form-item>
-          <el-form-item label="手机号:">
-            <p>{{ userObj.number }}</p>
-          </el-form-item>
-          <el-form-item label="邮箱:">
-            <p>{{ userObj.email }}</p>
-          </el-form-item>
-          <el-form-item label="公司:">
-            <p>{{ userObj.company }}</p>
-          </el-form-item>
-        </el-form>
-        <!-- <template #footer>
-          <div class="dialog-footer">
-            <el-button @click="userDialog = false">取消</el-button>
-            <el-button type="primary" @click="userDialog = false">
-              确定
-            </el-button>
-          </div>
-        </template> -->
+          <el-table-column prop="type" label="类型" width="180">
+            <template #default="scope">
+              <div>
+                {{ modelTypeMap[scope.row.type] }}
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="status" label="状态" width="180">
+            <template #default="scope">
+              <div>
+                {{ modelStatusMap[scope.row.status] }}
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="message" label="消息" width="250" />
+          <el-table-column fixed="right" label="操作">
+            <template #default="scope">
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleViewCreator(scope.row)"
+              >
+                查看达人
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-dialog>
+    </div>
+    <!-- 邀约达人 -->
+    <div>
+      <el-dialog v-model="CreatorDataDialo">
+        <div>
+          <el-table
+            :data="modelCreatorData"
+            :header-cell-style="{
+              backgroundColor: '#f6f7fc',
+              color: '#1f283c',
+              fontSize: '14px',
+              textAlign: 'center',
+            }"
+            :cell-style="{ textAlign: 'center' }"
+          >
+            <!-- <el-table-column prop="creator_id" label="达人ID" width="220" /> -->
+            <el-table-column prop="nick_name" label="昵称" width="180" />
+            <el-table-column prop="user_name" label="名称" />
+            <el-table-column prop="selection_region" label="区域" />
+            <el-table-column prop="product_add_cnt" label="添加产品内容数量" />
+            <el-table-column
+              prop="content_posted_cnt"
+              label="发布产品内容数量"
+            />
+          </el-table>
+        </div>
       </el-dialog>
     </div>
   </div>
@@ -138,9 +178,26 @@ import {
   ApiGetTasks,
   ApiGetProducts,
   ApiGetSummary,
+  ApiGetRpaTasks,
+  ApiGetTaskCreator,
 } from "@/api/launchmanagement";
 const router = useRouter();
 const modelTasksData = ref([]);
+const modelTypeMap = reactive({
+  1: "素人私信",
+  2: "达人签约",
+  3: "达人私信",
+});
+const modelStatusMap = reactive({
+  1: "等待接收任务",
+  2: "正在处理发送任务",
+  3: "执行失败或应用程序错误，需要重试",
+  4: "任务已成功执行并收到响应",
+  5: "请求无效或违反规则，无需重试",
+  7: "任务已完成",
+  8: "完成",
+  11: "取消",
+});
 let loading = ref(false);
 const pageObj = reactive({
   page: 1,
@@ -176,6 +233,27 @@ const userObj = ref();
 const handleJumpDetail = (row) => {
   userDialog.value = true;
   userObj.value = row.user;
+  GetRpaTasks(row.taskId);
+};
+
+// 查询投放任务
+let modelRpaTasksData = ref([]);
+const GetRpaTasks = (id: String) => {
+  ApiGetRpaTasks(id).then((res: any) => {
+    console.log(res, "任务列表");
+    modelRpaTasksData.value = res.data;
+  });
+};
+// 查看达人
+let modelCreatorData = ref([]);
+let CreatorDataDialo = ref(false);
+const handleViewCreator = (row: Object) => {
+  console.log(row, "-------------");
+  CreatorDataDialo.value = true;
+  ApiGetTaskCreator(row.taskId).then((res: any) => {
+    console.log(res, "达人=========");
+    modelCreatorData.value = res.creators;
+  });
 };
 
 let productsTotal = ref();

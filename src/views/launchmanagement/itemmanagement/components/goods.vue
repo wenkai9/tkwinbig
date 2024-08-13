@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h2>物品管理</h2>
     <el-table
       :data="modelData"
       border
@@ -14,7 +13,7 @@
       v-loading="loading"
       style="width: 100%"
     >
-      <el-table-column label="物品名称" width="280">
+      <el-table-column label="物品名称" width="220">
         <template #default="scope">
           {{ scope.row.title }}
         </template>
@@ -29,10 +28,18 @@
           {{ scope.row.match_tag }}
         </template>
       </el-table-column>
-      <el-table-column label="是否免费寄送样品">
+      <el-table-column label="是否免费邮寄商品">
         <template #default="scope">
           {{ SampleMap[scope.row.hasFreeSample] }}
         </template>
+      </el-table-column>
+      <el-table-column label="佣金率">
+        <template #default="scope">
+          {{ scope.row.commissionRate }}
+        </template>
+      </el-table-column>
+      <el-table-column label="合作费">
+        <template #default="scope"> {{ scope.row.CooperationFee }} </template>
       </el-table-column>
       <el-table-column label="物品状态">
         <template #default="scope">
@@ -44,7 +51,6 @@
           {{ scope.row.rule_name }}
         </template>
       </el-table-column>
-
       <el-table-column fixed="right" label="操作" width="120">
         <template #default="scope">
           <el-button
@@ -77,57 +83,33 @@
     <div>
       <el-dialog v-model="dialogVisible">
         <div>
-          <el-form class="demo-form-inline" label-width="auto">
-            <el-form-item label="商品ID:">
-              <el-input
-                v-model="formData.product_id"
-                placeholder="请输入商品ID"
-                clearable
-              />
-            </el-form-item>
-            <el-form-item label="商品标题:">
-              <el-input
-                v-model="formData.title"
-                placeholder="请输入商品标题"
-                clearable
-              />
-            </el-form-item>
-            <el-form-item label="商品描述:">
-              <el-input
-                v-model="formData.description"
-                placeholder="请输入商品描述"
-                clearable
-              />
-            </el-form-item>
-            <el-form-item label="商品价格:">
-              <el-input
-                v-model="formData.price"
-                placeholder="请输入商品价格"
-                clearable
-              />
-            </el-form-item>
-            <el-form-item label="商品类目ID:">
-              <el-input
-                v-model="formData.base_category2"
-                placeholder="请输入商品类目ID"
-                clearable
-              />
-            </el-form-item>
-            <el-form-item label="商品链接:">
-              <el-input
-                v-model="formData.Product_link"
-                placeholder="请输入商品链接"
-                clearable
-              />
-            </el-form-item>
-          </el-form>
+          <el-table :data="modelRulesData" @current-change="choiceRules">
+            <el-table-column label="建联名称" width="280">
+              <template #default="scope">
+                {{ scope.row.name }}
+              </template>
+            </el-table-column>
+            <el-table-column label="视频拍摄要求" width="280">
+              <template #default="scope">
+                {{ scope.row.requirement }}
+              </template>
+            </el-table-column>
+            <el-table-column label="佣金">
+              <template #default="scope">
+                ¥{{ scope.row.commission }}
+              </template>
+            </el-table-column>
+          </el-table>
         </div>
-        <template #footer>
-          <div class="dialog-footer">
-            <el-button @click="dialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="submitEdit"> 确认 </el-button>
-          </div>
-        </template>
+        <div>
+          <GlobalPage
+            :page="RulesPageObj.page"
+            :pageSize="RulesPageObj.size"
+            :total="RulesPageObj.total"
+            @changePage="changeRulesPage"
+            @changeSize="changeRulesSize"
+          />
+        </div>
       </el-dialog>
     </div>
   </div>
@@ -139,6 +121,7 @@ import {
   ApiUpdataProducts,
   ApiEditProducts,
   ApiDeteleProducts,
+  ApiGetListRules,
 } from "@/api/launchmanagement";
 import { ElMessage, ElMessageBox } from "element-plus";
 const modelData = ref([]);
@@ -154,12 +137,7 @@ const SampleMap = reactive({
 });
 const dialogVisible = ref(false);
 let formData = ref({
-  product_id: "",
-  title: "",
-  description: "",
-  price: "",
-  base_category2: "",
-  Product_link: "",
+  raidsysrule_id: "",
 });
 const id = ref("");
 const GetProducts = async () => {
@@ -185,20 +163,36 @@ const changeSize = (size: number) => {
 };
 
 const handleEdit = (item: object) => {
-  console.log(item);
   dialogVisible.value = true;
-  formData.value = {
-    product_id: item.product_id,
-    title: item.title,
-    description: item.description,
-    price: item.price,
-    base_category2: item.base_category2_id,
-    Product_link: item.product_link,
-  };
   id.value = item.product_id;
 };
 
-const submitEdit = () => {
+let RulesPageObj = reactive({
+  page: 1,
+  size: 10,
+  total: 0,
+});
+let modelRulesData = ref([]);
+const GetListRules = () => {
+  ApiGetListRules(RulesPageObj.page, RulesPageObj.size).then((res) => {
+    modelRulesData.value = [...res.rules];
+    RulesPageObj.total = res.total_rules;
+  });
+};
+GetListRules();
+
+const changeRulesPage = (page: number) => {
+  RulesPageObj.page = page;
+  GetListRules();
+};
+const changeRulesSize = (size: number) => {
+  RulesPageObj.page = 1;
+  RulesPageObj.size = size;
+  GetListRules();
+};
+const choiceRules = (data) => {
+  console.log(data, "------");
+  formData.value.raidsysrule_id = data.id;
   ApiEditProducts(formData.value, id.value).then((res) => {
     console.log(res.code, "==========");
     if (res.code != 200) {

@@ -35,6 +35,14 @@
             clearable
           />
         </el-form-item>
+        <el-form-item label="商品ID:">
+          <el-input
+            readonly
+            v-model.trim="formData.id"
+            placeholder="请输入商品商品ID"
+            clearable
+          />
+        </el-form-item>
         <el-form-item label="是否免费寄样品:">
           <el-switch
             inline-prompt
@@ -117,6 +125,7 @@ const formData = ref({
   description: "",
   price: "",
   product_link: "",
+  id: "",
   hasFreeSample: false,
   commissionRate: "",
   CooperationFee: "",
@@ -134,6 +143,7 @@ const pageObj = reactive({
   total: 0,
 });
 const options = ref([]);
+
 ApiAddProducts("", pageObj.page, pageObj.size).then((res) => {
   options.value = [...res.category2_data];
 });
@@ -156,7 +166,11 @@ const handleChange = (value) => {
   console.log(value);
   formData.value.base_category2_id = value;
 };
-
+const generateRandomFiveDigitNumber = (string) => {
+  string = Math.floor(Math.random() * 100000);
+  const formattedNumber = String(string).padStart(5, "0");
+  return formattedNumber;
+};
 const handleSubmit = () => {
   const requiredFields = [
     { key: "title", message: "请输入商品标题" },
@@ -189,6 +203,7 @@ const handleSubmit = () => {
   }
   loading.value = true;
   formData.value.hasFreeSample = false ? 0 : 1;
+  formData.value.id = generateRandomFiveDigitNumber(formData.value.id);
   ApiAddProducts(formData.value)
     .then((res) => {
       let resJson = res;

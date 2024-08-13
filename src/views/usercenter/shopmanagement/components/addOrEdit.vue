@@ -13,6 +13,13 @@
             clearable
           />
         </el-form-item>
+        <el-form-item label="店铺ID:">
+          <el-input
+            v-model.trim="formData.shopId"
+            placeholder="请输入店铺ID"
+            clearable
+          />
+        </el-form-item>
         <el-form-item label="店铺地区:">
           <el-input
             v-model.trim="formData.location"
@@ -45,6 +52,7 @@ import { ElMessage } from "element-plus";
 const router = useRouter();
 const formData = ref({
   shop_name: "",
+  shopId: "",
   location: "",
   description: "",
 });
@@ -52,6 +60,7 @@ const loading = ref(false);
 const handleSubmit = () => {
   const requiredFields = [
     { key: "shop_name", message: "请输入店铺名称" },
+    { key: "shopId", message: "请输入店铺ID" },
     { key: "location", message: "请输入店铺地区" },
     { key: "description", message: "请输入店铺描述" },
   ];

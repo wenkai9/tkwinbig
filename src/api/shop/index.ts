@@ -33,3 +33,20 @@ export function ApiDeleteShop(shopId) {
   });
 }
 
+
+
+// 通过任务id获取店铺列表list_tasks
+export function ApigetShop_tasks(taskId) {
+  return service.request({
+    url: `user/get_shop/${taskId}`,
+    method: "get",
+  });
+}
+
+// 通过店铺id获取商品get_product
+export function ApigetGood_shop(shop_id) {
+  return service.request({
+    url: `user/get_product/${shop_id}`,
+    method: "get",
+  });
+}

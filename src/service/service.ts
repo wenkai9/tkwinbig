@@ -5,7 +5,7 @@ import { ElMessage } from 'element-plus';
 const service = axios.create({
   // baseURL: process.env.VUE_APP_BASE_API, 
   baseURL: '/',
-  timeout: 5000000,
+  timeout: 800000000,
   withCredentials: true,
 });
 

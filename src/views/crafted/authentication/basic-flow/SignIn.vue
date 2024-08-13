@@ -101,7 +101,8 @@ const handleLogin = async () => {
     console.log(res.token, "res.data.token");
 
     Cookies.set("Authorization", res.token);
-    window.localStorage.setItem("userId", res.data.id);
+    window.localStorage.setItem("userId", res.data.user_id);
+    window.localStorage.setItem("userName", res.data.username);
     router.push({ name: "dashboard" });
   }, 1000);
 };

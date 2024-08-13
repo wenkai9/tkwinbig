@@ -61,7 +61,7 @@ const MainMenuConfig: Array<MenuItem> = [
       {
         sectionTitle: "投放管理",
         route: "/launchmanagement",
-        keenthemesIcon: "medal-star",
+        keenthemesIcon: "chart-line-up",
         sub: [
           {
             heading: "物品管理",
@@ -76,9 +76,130 @@ const MainMenuConfig: Array<MenuItem> = [
           }, {
             heading: "商品展示",
             route: "/launchmanagement/goods/index",
-          }
+          },
+          // {
+          //   heading: "RPA私信",
+          //   route: "/launchmanagement/rpa/index",
+          // },
+          // {
+          //   heading: "RPA建联",
+          //   route: "/launchmanagement/rpainvitation/index",
+          // }
+
         ]
       },
+
+
+    ]
+  },
+  // {
+  //   route: "/rpa",
+  //   pages: [
+  //     {
+  //       sectionTitle: "authentication",
+  //       keenthemesIcon: "fingerprint-scanning",
+  //       bootstrapIcon: "bi-sticky",
+  //       sub: [
+  //         {
+  //           sectionTitle: "basicFlow",
+  //           sub: [
+  //             {
+  //               heading: "signIn",
+  //               route: "/sign-in",
+  //             },
+  //             {
+  //               heading: "signUp",
+  //               route: "/sign-up",
+  //             },
+  //             {
+  //               heading: "passwordReset",
+  //               route: "/password-reset",
+  //             },
+  //           ],
+  //         },
+  //         {
+  //           heading: "multiStepSignUp",
+  //           route: "/multi-step-sign-up",
+  //         },
+  //         {
+  //           heading: "error404",
+  //           route: "/404",
+  //         },
+  //         {
+  //           heading: "error500",
+  //           route: "/500",
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       sectionTitle: "RPA管理",
+  //       route: "/rpa",
+  //       keenthemesIcon: "paper-clip",
+  //       sub: [
+  //         {
+  //           heading: "RPA私信",
+  //           route: "/rpa/rpa/index",
+  //         },
+  //         {
+  //           heading: "RPA建联",
+  //           route: "/rpa/rpainvitation/index",
+  //         }
+
+  //       ]
+  //     },
+  //   ]
+  // },
+  {
+    route: "/productsearch",
+    pages: [
+      {
+        sectionTitle: "authentication",
+        keenthemesIcon: "fingerprint-scanning",
+        bootstrapIcon: "bi-sticky",
+        sub: [
+          {
+            sectionTitle: "basicFlow",
+            sub: [
+              {
+                heading: "signIn",
+                route: "/sign-in",
+              },
+              {
+                heading: "signUp",
+                route: "/sign-up",
+              },
+              {
+                heading: "passwordReset",
+                route: "/password-reset",
+              },
+            ],
+          },
+          {
+            heading: "multiStepSignUp",
+            route: "/multi-step-sign-up",
+          },
+          {
+            heading: "error404",
+            route: "/404",
+          },
+          {
+            heading: "error500",
+            route: "/500",
+          },
+        ],
+      },
+      {
+        sectionTitle: "商品检索",
+        route: "/productsearch",
+        keenthemesIcon: "purchase",
+        sub: [
+          {
+            heading: "商品查询",
+            route: "/productsearch/index",
+
+          }]
+      }
+
 
     ]
   },
@@ -125,7 +246,7 @@ const MainMenuConfig: Array<MenuItem> = [
       {
         sectionTitle: "用户中心",
         route: "/usercenter",
-        keenthemesIcon: "medal-star",
+        keenthemesIcon: "profile-user",
         sub: [
           {
             heading: "用户管理",
@@ -143,6 +264,60 @@ const MainMenuConfig: Array<MenuItem> = [
       }
     ]
   },
+  // chat对话
+  // {
+  //   route: "/chat",
+  //   pages: [
+  //     {
+  //       sectionTitle: "authentication",
+  //       keenthemesIcon: "dots-square",
+  //       bootstrapIcon: "bi-sticky",
+  //       sub: [
+  //         {
+  //           sectionTitle: "basicFlow",
+  //           sub: [
+  //             {
+  //               heading: "signIn",
+  //               route: "/sign-in",
+  //             },
+  //             {
+  //               heading: "signUp",
+  //               route: "/sign-up",
+  //             },
+  //             {
+  //               heading: "passwordReset",
+  //               route: "/password-reset",
+  //             },
+  //           ],
+  //         },
+  //         {
+  //           heading: "multiStepSignUp",
+  //           route: "/multi-step-sign-up",
+  //         },
+  //         {
+  //           heading: "error404",
+  //           route: "/404",
+  //         },
+  //         {
+  //           heading: "error500",
+  //           route: "/500",
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       sectionTitle: "chat对话",
+  //       route: "/chat",
+  //       keenthemesIcon: "dots-square",
+  //       sub: [
+  //         {
+  //           heading: "对话",
+  //           route: "/chat/index",
+  //         }]
+  //     }
+
+
+  //   ]
+  // }
   // {
   //   heading: "craft",
   //   route: "/crafted",

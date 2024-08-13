@@ -129,6 +129,20 @@ export function ApiGetTasks(tage: number, size: number) {
     method: "get",
   });
 }
+export function ApiGetRetrieval(data: any) {
+  return service.request({
+    url: `/user/retrieval`,
+    method: "post",
+    data
+  });
+}
+//启动任务
+export function ApiStartTasks(taskId) {
+  return service.request({
+    url: `/user/start_task/${taskId}`,
+    method: "post",
+  });
+}
 
 // 新增建联
 export function ApiAddTasks(data) {
@@ -142,6 +156,22 @@ export function ApiAddTasks(data) {
 export function ApiGetSummary() {
   return service.request({
     url: `/user/tasks/summary`,
+    method: "get",
+
+  });
+}
+// 查询投放任务
+export function ApiGetRpaTasks(taskId: String) {
+  return service.request({
+    url: `/user/get_rpa_tasks/${taskId}`,
+    method: "get",
+
+  });
+}
+// 查看达人
+export function ApiGetTaskCreator(taskId: String) {
+  return service.request({
+    url: `/user/get_task_creator/${taskId}`,
     method: "get",
 
   });

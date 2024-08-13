@@ -209,7 +209,25 @@ const handleApi = (formData, idValue) => {
   });
 };
 
+const showError = (message) => {
+  return ElMessage({
+    message: message,
+    type: "warning",
+  });
+};
+
 const submitAddorEdit = () => {
+  const requiredFields = [
+    { key: "name", message: "请输入建联名称" },
+    { key: "requirement", message: "请输入建联要求" },
+    { key: "commission", message: "请输入建联佣金" },
+  ];
+  for (let field of requiredFields) {
+    if (formData.value[field.key] === "") {
+      return showError(field.message);
+    }
+  }
+
   if (id.value) {
     handleApi(formData.value, id.value);
   } else {
