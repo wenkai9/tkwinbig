@@ -136,13 +136,25 @@ export function ApiGetRetrieval(data: any) {
     data
   });
 }
+
 //启动任务
 export function ApiStartTasks(taskId) {
   return service.request({
     url: `/user/start_task/${taskId}`,
+    // url: `/user/tk_invitation`,
     method: "post",
+    // data
   });
 }
+// 达人邀约
+export function ApiInvitationCreator(data) {
+  return service.request({
+    url: `/user/tk_invitation`,
+    method: "post",
+    data
+  });
+}
+
 
 // 新增建联
 export function ApiAddTasks(data) {

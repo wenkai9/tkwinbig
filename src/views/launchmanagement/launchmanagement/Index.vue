@@ -154,11 +154,12 @@
   </div>
 </template>
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { reactive, ref, onMounted } from "vue";
 import {
   ApiGetTasks,
   ApiGetRetrieval,
   ApiStartTasks,
+  ApiInvitationCreator,
 } from "@/api/launchmanagement";
 import { ApigetShop_tasks, ApigetGood_shop } from "@/api/shop";
 import { ApiPostSendMsg_Invitation } from "../../../api/rpa";
@@ -237,15 +238,22 @@ const handleStart = (id) => {
           message: res.msg,
           type: "success",
         });
-        ApiPostSendMsg_Invitation(id).then((res) => {
-          console.log(res, "rpa");
+        const data = {
+          taskId: id,
+        };
+        ApiInvitationCreator(data).then((res) => {
+          GetTasks(pageObj.page, pageObj.size);
         });
-        GetTasks(pageObj.page, pageObj.size);
+        // ApiPostSendMsg_Invitation(id).then((res) => {
+        //   console.log(res, "rpa");
+        // });
       });
     })
     .catch(() => {});
 };
-GetTasks();
+onMounted(() => {
+  GetTasks();
+});
 
 // let taskName = ref("");
 // let shopName = ref("");
