@@ -6,16 +6,22 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from datetime import datetime
 from .models import Shop
 
+'''
+需要用户去填写tk的店铺id
+'''
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_shop(request):
     try:
+        shopId = request.POST.get('shopId')
         shop_name = request.POST.get('shop_name')
         location = request.POST.get('location')
         description = request.POST.get('description')
 
         shop = Shop.objects.create(
+            shopId=shopId,
             shop_name=shop_name,
             location=location,
             description=description,
@@ -37,15 +43,21 @@ def create_shop(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def list_shops(request, page=None):
-    if request.method == 'GET':
-
+    try:
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 400, 'errmsg': '未提供有效的身份认证,请重新登录'})
         all_shops = Shop.objects.all().order_by('shopId')
 
         size = int(request.GET.get('size', 10))
 
         paginator = Paginator(all_shops, size)
 
-        page_number = int(request.GET.get('page'))
+        page_number = request.GET.get('page')
+        if page_number is None:
+            page_number = 1
+        else:
+            page_number = int(page_number)
 
         try:
             shops = paginator.page(page_number)
@@ -61,6 +73,7 @@ def list_shops(request, page=None):
             "shop_name": shop.shop_name,
             "location": shop.location,
             "description": shop.description,
+            "user_id": shop.user_id,
             "createAt": shop.createAt.strftime("%Y-%m-%d %H:%M:%S")
         } for shop in shops]
 
@@ -68,8 +81,8 @@ def list_shops(request, page=None):
             {"code": 200, "shops": serialized_shops, "page": shops.number, "total_pages": paginator.num_pages,
              "total_shops": paginator.count},
             status=200)
-    else:
-        return JsonResponse({'code': 400, 'errmsg': '请求方法不支持'}, status=400)
+    except Exception as e:
+        return JsonResponse({"code": 500, "error": str(e)}, status=500)
 
 
 @csrf_exempt

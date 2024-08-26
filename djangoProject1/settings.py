@@ -10,8 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os
-from datetime import timedelta
 from pathlib import Path
+import mongoengine
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,9 +29,8 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
-# Application definition
-
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,12 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app.apps.AppConfig',
-    'corsheaders',
     'app.users',
     'app.shops',
     'app.goods',
     'app.task',
     'app.areas',
+    'app.payment',
 ]
 
 MIDDLEWARE = [
@@ -56,7 +55,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'app.users.middleware.JWTMiddleware',
+    'app.users.middleware.JWTMiddleware'
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -66,7 +65,7 @@ ROOT_URLCONF = 'djangoProject1.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
+        'DIRS': []
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -92,27 +91,41 @@ WSGI_APPLICATION = 'djangoProject1.wsgi.application'
 #     }
 # }
 
+DATABASES = {
+    "default": {
+        'ENGINE': 'django.db.backends.mysql',
+        "NAME": "tkwinbig",
+        "USER": "root",
+        "PASSWORD": "123456",
+        "HOST": "localhost",
+        "PORT": 3306,
+        "OPTIONS": {'charset': 'utf8mb4'}
+    }
+}
+
 # DATABASES = {
 #     "default": {
 #         'ENGINE': 'django.db.backends.mysql',
-#         "NAME": "tkwinbig",
-#         "USER": "root",
-#         "PASSWORD": "123456",
-#         "HOST": "localhost",
+#         "NAME": "tk-ai",
+#         "USER": "tkwinbig3",
+#         "PASSWORD": "306012swj=",
+#         "HOST": "tkwinbig.mysql.polardb.rds.aliyuncs.com",
 #         "PORT": 3306,
 #     }
 # }
 
-DATABASES = {
-    "default": {
-        'ENGINE': 'django.db.backends.mysql',
-        "NAME": "tkwinbig_test",
-        "USER": "tkwinbig3",
-        "PASSWORD": "306012swj=",
-        "HOST": "tkwinbig.mysql.polardb.rds.aliyuncs.com",
-        "PORT": 3306,
+
+# 配置 MongoDB
+MONGODB_DATABASES = {
+    'default': {
+        'NAME': 'tk',
+        'HOST': 'localhost',
+        'PORT': 27017,
+        'USERNAME': '',  # 如果需要认证，填写 MongoDB 用户名
+        'PASSWORD': '',  # 如果需要认证，填写 MongoDB 密码
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -152,8 +165,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Celery 配置
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-

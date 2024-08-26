@@ -20,7 +20,7 @@ def add_product(request, page=None):
             data = json.loads(request.body)
             # 检查 shop_id 是否存在
             try:
-                Shop.objects.get(pk=data['shopId'])
+                Shop.objects.get(shopId=data['shopId'])
             except ObjectDoesNotExist:
                 return JsonResponse({"code": 400, 'errmsg': '无效的店铺 ID'}, status=400)
             try:
@@ -29,6 +29,7 @@ def add_product(request, page=None):
                 return JsonResponse({"code": 400, 'errmsg': '无效的二级分类 ID'}, status=400)
             match_tag = f"{data['title']}_{base_category.name}"
             product = Goods.objects.create(
+                id=data['id'],
                 title=data['title'],
                 description=data['description'],
                 price=data['price'],
@@ -148,33 +149,86 @@ def list_products(request, page=None):
 
 
 @csrf_exempt
-def get_product(request, product_id):
+def get_products(request, shop_id):
     if request.method == 'GET':
         try:
-            product = Goods.objects.get(id=product_id)
-            data = {
-                "product_id": product.id,
-                "title": product.title,
-                "description": product.description,
-                "price": str(product.price),
-                "base_category2_id": product.base_category2_id,
-                "product_link": product.product_link,
-                "shopId": product.shop_id,
-                "match_tag": product.match_tag,
-                "hasFreeSample": product.hasFreeSample,
-                "commissionRate": product.commissionRate,
-                "CooperationFee": product.CooperationFee,
-                "product_status": product.product_status,
-                "raidsysrule_id": product.raidsysrule_id,
-                "createdAt": str(product.createdAt)
-            }
+            products = Goods.objects.filter(shop_id=shop_id)
+            data = []
+            for product in products:
+                product_data = {
+                    "product_id": product.id,
+                    "title": product.title,
+                    "description": product.description,
+                    "price": str(product.price),
+                    "base_category2_id": product.base_category2_id,
+                    "product_link": product.product_link,
+                    "shopId": product.shop_id,
+                    "match_tag": product.match_tag,
+                    "hasFreeSample": product.hasFreeSample,
+                    "commissionRate": product.commissionRate,
+                    "CooperationFee": product.CooperationFee,
+                    "product_status": product.product_status,
+                    "raidsysrule_id": product.raidsysrule_id,
+                    "createdAt": str(product.createdAt)
+                }
+                data.append(product_data)
             return JsonResponse({"code": 200, "data": data}, status=200)
-        except Goods.DoesNotExist:
-            return JsonResponse({"code": 400, 'errmsg': '商品不存在'}, status=404)
         except Exception as e:
             return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
     else:
         return JsonResponse({"code": 405, 'errmsg': '只支持 GET 请求'}, status=405)
+
+
+# @csrf_exempt
+# def update_product(request, product_id):
+#     if request.method == 'PUT':
+#         try:
+#             data = json.loads(request.body)
+#             # 验证 title 和 description 是否被正确提供
+#             title = data.get('title')
+#             description = data.get('description')
+#             if not title or not description:
+#                 return JsonResponse({"code": 400, 'errmsg': '标题和描述为必填项'}, status=400)
+#             # try:
+#             #     RaidsysRule.objects.get(pk=data['id'])
+#             # except ObjectDoesNotExist:
+#             #     return JsonResponse({"code": 400, 'errmsg': '建联规则不存在'}, status=400)
+#             product = Goods.objects.get(id=product_id)
+#             # 更新商品信息
+#             product.title = title
+#             product.description = description
+#             product.price = data.get('price', product.price)
+#             product.base_category2_id = data.get('base_category2_id', product.base_category2_id)
+#             product.product_link = data.get('product_link', product.product_link)
+#             product.match_tag = data.get('match_tag', product.match_tag)
+#             product.hasFreeSample = data.get('hasFreeSample', product.hasFreeSample)
+#             product.commissionRate = data.get('commissionRate', product.commissionRate)
+#             product.CooperationFee = data.get('CooperationFee', product.CooperationFee)
+#             # product.product_status = 1  # 商品状态改为1，表示已建联
+#             # product.raidsysrule_id = data['id']
+#             product.save()
+#             data = {
+#                 "product_id": product.id,
+#                 "title": product.title,
+#                 "description": product.description,
+#                 "price": str(product.price),
+#                 "base_category2_id": product.base_category2_id,
+#                 "product_link": product.product_link,
+#                 "shopId": product.shop_id,
+#                 "match_tag": product.match_tag,
+#                 "hasFreeSample": product.hasFreeSample,
+#                 "commissionRate": product.commissionRate,
+#                 "CooperationFee": product.CooperationFee,
+#                 # "product_status": product.product_status,
+#                 # "raidsysrule_id": product.raidsysrule_id,
+#                 "updatedAt": str(product.updatedAt)
+#             }
+#             return JsonResponse({"code": 200, "msg": "商品信息更新成功", "data": data}, status=200)
+#         except Goods.DoesNotExist:
+#             return JsonResponse({"code": 404, 'errmsg': '商品不存在'}, status=404)
+#         except Exception as e:
+#             return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
+from django.shortcuts import get_object_or_404
 
 
 @csrf_exempt
@@ -182,48 +236,27 @@ def update_product(request, product_id):
     if request.method == 'PUT':
         try:
             data = json.loads(request.body)
-            # 验证 title 和 description 是否被正确提供
-            title = data.get('title')
-            description = data.get('description')
-            if not title or not description:
-                return JsonResponse({"code": 400, 'errmsg': '标题和描述为必填项'}, status=400)
-            # try:
-            #     RaidsysRule.objects.get(pk=data['id'])
-            # except ObjectDoesNotExist:
-            #     return JsonResponse({"code": 400, 'errmsg': '建联规则不存在'}, status=400)
+            # 验证提供的 raidsysrule_id 是否有效
+            raidsysrule_id = data.get('raidsysrule_id')
+            raidsysrule = get_object_or_404(RaidsysRule, pk=raidsysrule_id)
+
+            # 获取商品
             product = Goods.objects.get(id=product_id)
+
             # 更新商品信息
-            product.title = title
-            product.description = description
-            product.price = data.get('price', product.price)
-            product.base_category2_id = data.get('base_category2_id', product.base_category2_id)
-            product.product_link = data.get('product_link', product.product_link)
-            product.match_tag = data.get('match_tag', product.match_tag)
-            product.hasFreeSample = data.get('hasFreeSample', product.hasFreeSample)
-            product.commissionRate = data.get('commissionRate', product.commissionRate)
-            product.CooperationFee = data.get('CooperationFee', product.CooperationFee)
-            # product.product_status = 1  # 商品状态改为1，表示已建联
-            # product.raidsysrule_id = data['id']
+            product.raidsysrule = raidsysrule  # 更新 raidsysrule_id
+            product.product_status = True  # 更新商品状态
+
             product.save()
-            data = {
-                "product_id": product.id,
-                "title": product.title,
-                "description": product.description,
-                "price": str(product.price),
-                "base_category2_id": product.base_category2_id,
-                "product_link": product.product_link,
-                "shopId": product.shop_id,
-                "match_tag": product.match_tag,
-                "hasFreeSample": product.hasFreeSample,
-                "commissionRate": product.commissionRate,
-                "CooperationFee": product.CooperationFee,
-                # "product_status": product.product_status,
-                # "raidsysrule_id": product.raidsysrule_id,
-                "updatedAt": str(product.updatedAt)
-            }
-            return JsonResponse({"code": 200, "msg": "商品信息更新成功", "data": data}, status=200)
+
+            return JsonResponse({"code": 200, "msg": "建联规则修改成功"}, status=200)
+
         except Goods.DoesNotExist:
             return JsonResponse({"code": 404, 'errmsg': '商品不存在'}, status=404)
+
+        except RaidsysRule.DoesNotExist:
+            return JsonResponse({"code": 404, 'errmsg': '建联规则不存在'}, status=404)
+
         except Exception as e:
             return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
 
@@ -493,9 +526,6 @@ def list_products_all(request):
         return JsonResponse({"code": 405, 'errmsg': '只支持 GET 请求'}, status=405)
 
 
-# from .models import RaidsysRule
-#
-#
 @csrf_exempt
 def add_rule(request):
     if request.method == 'POST':

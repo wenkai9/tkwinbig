@@ -1,8 +1,10 @@
+import traceback
 from datetime import datetime, timedelta
 import jwt
 from django.conf import settings
 from django.http import JsonResponse
 from .views import generate_jwt
+
 
 
 class JWTMiddleware:

@@ -45,7 +45,7 @@ class Goods(models.Model):
         (False, '未建联'),
         (True, '已经建联'),
     )
-    id = models.AutoField(primary_key=True)
+    id = models.CharField(max_length=255, primary_key=True)
     title = models.CharField(max_length=100)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -66,3 +66,5 @@ class Goods(models.Model):
 
     class Meta:
         db_table = 'tk_goods'
+
+# 商家登录后去设置多个建联规则，上传物品时商家自行去选择建联规则
