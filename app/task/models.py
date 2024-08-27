@@ -20,6 +20,7 @@ class Task(models.Model):
     match_quantity = models.IntegerField(null=True)
     willing_quantity = models.IntegerField(null=True)
     send_quantity = models.IntegerField(null=True)
+    total_invitations = models.IntegerField(null=True)
     createAt = models.DateTimeField(auto_now_add=True)
     updateAt = models.DateTimeField(auto_now=True)
 

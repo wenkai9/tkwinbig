@@ -14,14 +14,11 @@ import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
+from utils.get_token import get_token
 '''
 D://PyCharmProject//tkwinbig//djangoProject1//settings.py
 '''
 
-token = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiI1ZDVkMGU4MS1lNGE2LTQ3Y2QtYjAyNy03ZWU2ZTE2ZjRmYmMiLCJ1bmlxdWVfbmFtZSI6InNvbmciLCJlbWFpbCI6IjIxODEyNTE4NDNAcXEuY29tIiwiZ2l2ZW5fbmFtZSI6InNvbmciLCJmYW1pbHlfbmFtZSI6IiIsInNvdXJjZSI6ImludGVybmFsIiwiZXh0ZXJuYWxfaWQiOiIiLCJqdGkiOiJmMTYwNzI1Zi0xNjYwLTQ4MTQtYWEzZC1jOGQ2YThhMzRkYjQiLCJwaG9uZSI6IiIsIm5iZiI6MTcyNDY2MTg5OSwiZXhwIjoxNzI0NjY5MDk5LCJpYXQiOjE3MjQ2NjE4OTksImlzcyI6InF0b3NzIiwiYXVkIjoicXRvc3MifQ.t1is03dmSPhxe9JDYqaUovfQiOpFcQpqqD12XVI3wGU")
-token = 'Bearer ' + token
-headers = {'Content-Type': 'application/json', 'Authorization': token}
 
 
 
@@ -46,6 +43,7 @@ def create_task(request):
                 match_quantity=0,
                 willing_quantity=0,
                 send_quantity=0,
+                total_invitations = 0,
                 createAt=datetime.now()
             )
 
@@ -115,6 +113,7 @@ def list_tasks(request, page=None, task_id=None):
                     'send_quantity': task.send_quantity,
                     'willing_quantity': task.willing_quantity,
                     'match_quantity': task.match_quantity,
+                    'total_invitations': task.total_invitations,
                     'createAt': task.createAt.strftime('%Y-%m-%d %H:%M:%S'),
                     # 包含用户信息
                     'user': {
@@ -152,6 +151,7 @@ def list_tasks(request, page=None, task_id=None):
                     'send_quantity': task.send_quantity,
                     'willing_quantity': task.willing_quantity,
                     'match_quantity': task.match_quantity,
+                    'total_invitations':task.total_invitations,
                     'createAt': task.createAt.strftime('%Y-%m-%d %H:%M:%S'),
                     # 包含用户信息
                     'user': {
@@ -192,7 +192,9 @@ def get_tasks_sum(request):
         send_quantity_sum = Task.objects.aggregate(Sum('send_quantity'))['send_quantity__sum'] or 0
         willing_quantity_sum = Task.objects.aggregate(Sum('willing_quantity'))['willing_quantity__sum'] or 0
         match_quantity_sum = Task.objects.aggregate(Sum('match_quantity'))['match_quantity__sum'] or 0
+        total_invitations_sum = Task.objects.aggregate(Sum('total_invitations'))['total_invitations__sum'] or 0
         response_data = {
+            "total_invitations_sum":total_invitations_sum,
             "send_quantity_sum": send_quantity_sum,
             "willing_quantity_sum": willing_quantity_sum,
             "match_quantity_sum": match_quantity_sum
@@ -332,35 +334,6 @@ def chat2(request):
 
 
 '''
-RPA获取token
-'''
-import base64
-
-@csrf_exempt
-def get_token(request):
-    if request.method == 'POST':
-        try:
-            your_string = "2181251843@qq.com:306012"
-            b = base64.b64encode(your_string.encode('utf-8'))
-            url = "https://qtoss-connect.azurewebsites.net/token"
-            base64_str = b.decode('utf-8')
-            authorization = 'Basic ' + base64_str
-            response = requests.post(url=url, headers={'Content-Type': 'application/json',
-                                                  'Authorization': authorization})
-            data = response.json()
-            access_token = data['access_token']
-            if response.status_code == 200:
-                return JsonResponse({"code": 200, "access_token:": access_token}, status=200)
-            else:
-                return JsonResponse({"code": response.status_code, "errmsg": "获取token失败"},
-                                    status=response.status_code)
-        except Exception as e:
-            return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
-
-    else:
-        return JsonResponse({"code": 405, "errmsg": "请求方法不支持"}, status=405)
-
-'''
 达人邀约
 '''
 
@@ -400,7 +373,8 @@ def tk_invitation(request):
             start_index = 0
             batch_size = 50
             total_tasks_sent = 0
-            creator_counts = []
+            total_creator_count = 0  # 总创作者数量
+            task_details = []  # 用于存储每个任务的详细信息
 
             while True:
                 # 从数据库中获取创作者ID列表
@@ -440,8 +414,8 @@ def tk_invitation(request):
                 }
 
                 url = 'https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/creator-invitation'
-                token = "******"
-                token = 'Bearer ' + token
+                access_token = get_token()
+                token = 'Bearer ' + access_token
                 headers = {'Content-Type': 'application/json', 'Authorization': token}
                 response = requests.post(url=url, headers=headers, json=data_to_send)
 
@@ -461,7 +435,15 @@ def tk_invitation(request):
                         complateAt=res.get('complatedAt'),
                     )
                     total_tasks_sent += 1
-                    creator_counts.append(len(creator_ids))
+                    total_creator_count += len(creator_ids)  # 累加总创作者数量
+                    task.total_invitations = total_creator_count
+                    task.save()
+                    print(task.total_invitations)
+
+                    task_details.append({
+                        "任务名称": f"YJQ-08-19-{n}",
+                        "任务邀约数": len(creator_ids)
+                    })  # 记录每个任务的名称和创作者数量
                 else:
                     return JsonResponse({"code": response.status_code, "errmsg": "外部接口请求失败"},
                                         status=response.status_code)
@@ -473,16 +455,18 @@ def tk_invitation(request):
                 "code": 200,
                 "msg": "邀请流程完成",
                 "发送的任务总数": total_tasks_sent,
-                "达人总数": creator_counts
+                "总邀约达人数": total_creator_count,  # 返回总创作者数
+                "任务详情": task_details  # 返回每个任务的详情
             }, status=200)
 
         except Task.DoesNotExist:
-            return JsonResponse({"code": 404, "errmsg": f"找不到 taskId {task_id} 对应的任务。"}, status=404)
+            return JsonResponse({"code": 404, "errmsg": f"找不到 taskId {task_id} 对应的任务."}, status=404)
         except User.DoesNotExist:
-            return JsonResponse({"code": 404, "errmsg": f"找不到与 taskId {task_id} 相关的用户信息。"}, status=404)
+            return JsonResponse({"code": 404, "errmsg": f"找不到与 taskId {task_id} 相关的用户信息."}, status=404)
         except Goods.DoesNotExist:
-            return JsonResponse({"code": 404, "errmsg": f"找不到与 taskId {task_id} 相关的商品信息。"}, status=404)
+            return JsonResponse({"code": 404, "errmsg": f"找不到与 taskId {task_id} 相关的商品信息."}, status=404)
         except Exception as e:
+            print(e)
             return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
 # @csrf_exempt
 # def invication(request, taskId):

@@ -24,8 +24,6 @@ urlpatterns = [
     path('chat/<str:taskId>', views.chat, name='chat'),
     # chat2
     path('chat2', views.chat2, name='chat2'),
-    # rpa获取token
-    path('get_token', views.get_token, name='get_token'),
     # 达人邀约
     path('tk_invitation', views.tk_invitation, name='tk_invitation'),
     # 达人邀约接收邀约状态
