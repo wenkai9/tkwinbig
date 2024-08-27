@@ -11,7 +11,16 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os
 from pathlib import Path
-import mongoengine
+from mongoengine import connect
+
+connect(
+    db='tk',
+    username='root',
+    password='tkwinbig@321',
+    host='dds-bp101612bc0289d41.mongodb.rds.aliyuncs.com',
+    port=3717,
+    authentication_source='tk'
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
