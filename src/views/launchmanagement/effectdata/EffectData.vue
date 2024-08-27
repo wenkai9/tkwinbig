@@ -15,22 +15,29 @@
       </div>
       <div class="grid5">
         <div class="grid5_value">
+          {{ modelSummary.total_invitations }}
+        </div>
+        <div>总邀约数</div>
+      </div>
+      <div class="grid5">
+        <div class="grid5_value">
           {{ modelSummary.willing_quantity_sum }}
         </div>
-        <div>达人沟通数</div>
+        <div>总邀约发送成功数</div>
       </div>
+
       <div class="grid5">
         <div class="grid5_value">
           {{ modelSummary.send_quantity_sum }}
         </div>
-        <div>有效回复数</div>
+        <div>总邀约回复数</div>
       </div>
-      <div class="grid5">
+      <!-- <div class="grid5">
         <div class="grid5_value">
           {{ modelSummary.match_quantity_sum }}
         </div>
         <div>合作意向数</div>
-      </div>
+      </div> -->
     </div>
     <div style="margin-top: 2rem">
       <el-table
@@ -56,7 +63,18 @@
             {{ scope.row.status }}
           </template>
         </el-table-column>
+        <el-table-column prop="total_invitations" label="总邀约数" width="180">
+          <template #default="scope">
+            {{ scope.row.total_invitations || "/" }}
+          </template>
+        </el-table-column>
         <el-table-column
+          prop="send_quantity"
+          label="邀约发送成功数"
+          width="180"
+        />
+
+        <!-- <el-table-column
           prop="send_quantity"
           label="已发送邮件人数"
           width="150"
@@ -64,18 +82,23 @@
           <template #default="scope">
             {{ scope.row.send_quantity || "/" }}
           </template>
-        </el-table-column>
-        <el-table-column prop="willing_quantity" label="回复人数" width="150">
+        </el-table-column> -->
+        <el-table-column prop="willing_quantity" label="邀约回复数" width="150">
           <template #default="scope">
             {{ scope.row.willing_quantity || "/" }}
           </template>
         </el-table-column>
-        <el-table-column prop="match_quantity" label="合作意向数" width="180">
+        <el-table-column
+          prop="match_quantity"
+          label="达人同意合作数"
+          width="180"
+        >
           <template #default="scope">
             {{ scope.row.match_quantity || "/" }}
           </template>
         </el-table-column>
-        <el-table-column prop="createAt" label="创建时间" width="180" />
+        <!-- <el-table-column prop="createAt" label="创建时间" width="180" /> -->
+
         <el-table-column fixed="right" label="查看合作用户详情" width="180">
           <template #default="scope">
             <el-button
@@ -264,11 +287,13 @@ const modelSummary = reactive({
   match_quantity_sum: "",
   send_quantity_sum: "",
   willing_quantity_sum: "",
+  total_invitations: "",
 });
 ApiGetSummary().then((res) => {
   modelSummary.match_quantity_sum = res.data.match_quantity_sum;
   modelSummary.send_quantity_sum = res.data.send_quantity_sum;
   modelSummary.willing_quantity_sum = res.data.willing_quantity_sum;
+  modelSummary.total_invitations = res.data.total_invitations;
 });
 </script>
 <style scoped lang="scss">

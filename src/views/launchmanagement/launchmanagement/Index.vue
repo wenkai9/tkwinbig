@@ -27,19 +27,24 @@
             </template>
           </el-table-column>
           <el-table-column
+            prop="total_invitations"
+            label="总邀约数"
+            width="180"
+          >
+            <template #default="scope">
+              {{ scope.row.willing_quantity || "/" }}
+            </template>
+          </el-table-column>
+          <el-table-column
             prop="send_quantity"
-            label="已发送邮件人数"
+            label="邀约发送成功数"
             width="180"
           >
             <template #default="scope">
               {{ scope.row.send_quantity || "/" }}
             </template>
           </el-table-column>
-          <el-table-column prop="willing_quantity" label="回复人数" width="180">
-            <template #default="scope">
-              {{ scope.row.willing_quantity || "/" }}
-            </template>
-          </el-table-column>
+
           <el-table-column prop="shop_name" label="店铺名称" width="180">
             <template #default="scope">
               {{ scope.row.shop_name || "/" }}

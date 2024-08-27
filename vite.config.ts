@@ -19,7 +19,7 @@ export default defineConfig({
     proxy: {
       "/user": {
         // 文杰
-        target: "http://192.168.31.5:8833",
+        target: "http://192.168.31.238:8833",
         // localhost
         // target: "http://192.168.31.236:8000",
         changeOrigin: true,
@@ -27,7 +27,7 @@ export default defineConfig({
           path.replace(
             /^\/user/,
             // 文杰
-            "http://192.168.31.5:8833"
+            "http://192.168.31.238:8833"
             // localhost
             // "http://192.168.31.236:8000"
           ),
