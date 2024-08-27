@@ -15,7 +15,7 @@
       </div>
       <div class="grid5">
         <div class="grid5_value">
-          {{ modelSummary.total_invitations }}
+          {{ modelSummary.total_invitations_sum }}
         </div>
         <div>总邀约数</div>
       </div>
@@ -287,13 +287,13 @@ const modelSummary = reactive({
   match_quantity_sum: "",
   send_quantity_sum: "",
   willing_quantity_sum: "",
-  total_invitations: "",
+  total_invitations_sum: "",
 });
 ApiGetSummary().then((res) => {
   modelSummary.match_quantity_sum = res.data.match_quantity_sum;
   modelSummary.send_quantity_sum = res.data.send_quantity_sum;
   modelSummary.willing_quantity_sum = res.data.willing_quantity_sum;
-  modelSummary.total_invitations = res.data.total_invitations;
+  modelSummary.total_invitations_sum = res.data.total_invitations_sum;
 });
 </script>
 <style scoped lang="scss">
