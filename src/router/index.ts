@@ -7,6 +7,24 @@ import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
 
 const routes: Array<RouteRecordRaw> = [
+
+  {
+    path: "/",
+    redirect: "/sign-in",
+    component: () => import("@/views/crafted/authentication/basic-flow/SignIn.vue"),
+    children: [
+      {
+        path: "/sign-in",
+        name: "sign-in",
+        component: () => import("@/views/crafted/authentication/basic-flow/SignIn.vue"),
+        meta: {
+          pageTitle: "sign-in",
+          breadcrumbs: ["sign-in"],
+        },
+      },
+
+    ],
+  },
   {
     path: "/",
     redirect: "/dashboard",

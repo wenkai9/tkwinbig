@@ -24,39 +24,53 @@
             clearable
           />
         </el-form-item>
-      </el-form>
-      <el-form
-        class="demo-form-inline"
-        style="max-width: 600px"
-        label-width="auto"
-      >
-        <el-form-item label="旧密码:">
-          <el-input
-            v-model="editFormData.old_password"
-            placeholder="请输入旧密码"
-            clearable
-          />
-        </el-form-item>
-        <el-form-item label="新密码:">
-          <el-input
-            v-model="editFormData.new_password"
-            placeholder="请输入新密码"
-            clearable
-          />
-        </el-form-item>
-        <el-form-item label="确认密码:">
-          <el-input
-            v-model="editFormData.confirm_password"
-            placeholder="请输入新密码"
-            clearable
-          />
-        </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="loading" @click="handleSubmit"
-            >提交</el-button
+          <el-button type="primary" @click="handleOpenDialog"
+            >修改密码</el-button
           >
         </el-form-item>
       </el-form>
+      <div>
+        <el-dialog v-model="dialogVisible" title="修改密码" width="500">
+          <el-form
+            class="demo-form-inline"
+            style="max-width: 600px"
+            label-width="auto"
+          >
+            <el-form-item label="旧密码:">
+              <el-input
+                v-model="editFormData.old_password"
+                placeholder="请输入旧密码"
+                clearable
+                type="password"
+              />
+            </el-form-item>
+            <el-form-item label="新密码:">
+              <el-input
+                v-model="editFormData.new_password"
+                placeholder="请输入新密码"
+                clearable
+                type="password"
+              />
+            </el-form-item>
+            <el-form-item label="确认密码:">
+              <el-input
+                v-model="editFormData.confirm_password"
+                placeholder="请输入新密码"
+                clearable
+                type="password"
+              />
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <div class="dialog-footer">
+              <el-button type="primary" :loading="loading" @click="handleSubmit"
+                >提交</el-button
+              >
+            </div>
+          </template>
+        </el-dialog>
+      </div>
     </el-card>
   </div>
 </template>
@@ -95,8 +109,36 @@ const getUser = () => {
       router.push({ name: "sign-in" });
     });
 };
+let dialogVisible = ref(false);
+const handleOpenDialog = () => {
+  dialogVisible.value = true;
+};
 
 const handleSubmit = () => {
+  if (
+    editFormData.value.old_password == "" ||
+    editFormData.value.old_password == null
+  ) {
+    return ElMessage({
+      message: "请输入旧密码",
+      type: "warning",
+    });
+  } else if (
+    editFormData.value.new_password == "" ||
+    editFormData.value.new_password == null
+  ) {
+    return ElMessage({
+      message: "请输入新的密码",
+      type: "warning",
+    });
+  } else if (
+    editFormData.value.new_password != editFormData.value.confirm_password
+  ) {
+    return ElMessage({
+      message: "新的密码与确认密码需一致",
+      type: "warning",
+    });
+  }
   loading.value = true;
   ApiChangePsw(getFormData(editFormData.value))
     .then((res) => {

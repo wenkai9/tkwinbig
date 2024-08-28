@@ -81,8 +81,8 @@ import { getFormData } from "@/utils/server";
 import { ElMessage } from "element-plus";
 import Cookies from "js-cookie";
 const formLabelAlign = reactive({
-  username: "test1",
-  password: "123456789",
+  username: "",
+  password: "",
 });
 const store = useAuthStore();
 const router = useRouter();

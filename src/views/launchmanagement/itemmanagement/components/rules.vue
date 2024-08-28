@@ -84,6 +84,8 @@
             </el-form-item>
             <el-form-item label="建联要求:">
               <el-input
+                type="textarea"
+                :rows="5"
                 v-model.trim="formData.requirement"
                 placeholder="请输入建联要求"
                 clearable

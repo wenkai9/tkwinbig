@@ -256,10 +256,10 @@ const MainMenuConfig: Array<MenuItem> = [
             heading: "店铺管理",
             route: "/usercenter/shopmanagement/ShopManagement",
           },
-          {
-            heading: "充值管理",
-            route: "/usercenter/rechargemanagement/RechargeManagement",
-          }
+          // {
+          //   heading: "充值管理",
+          //   route: "/usercenter/rechargemanagement/RechargeManagement",
+          // }
         ]
       }
     ]
