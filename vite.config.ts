@@ -32,21 +32,7 @@ export default defineConfig({
             // "http://192.168.31.236:8000"
           ),
       },
-      "/qtoss-connect": {
-        // 文杰
-        target: "https://qtoss-connect-dev.azurewebsites.net",
-        // localhost
-        // target: "http://192.168.31.236:8000",
-        changeOrigin: true,
-        rewrite: (path) =>
-          path.replace(
-            /^\/user/,
-            // 文杰
-            "https://qtoss-connect-dev.azurewebsites.net"
-            // localhost
-            // "http://192.168.31.236:8000"
-          ),
-      },
+
       "/api": {
         target: "https://preview.keenthemes.com/metronic8/laravel/api",
         changeOrigin: true,

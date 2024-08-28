@@ -7,39 +7,61 @@
         backgroundColor: '#f6f7fc',
         color: '#1f283c',
         fontSize: '14px',
-        textAlign: 'center',
+        textAlign: 'left',
       }"
-      :cell-style="{ textAlign: 'center' }"
+      :cell-style="{ textAlign: 'left' }"
       v-loading="loading"
       style="width: 100%"
     >
       <el-table-column label="物品名称" width="220">
         <template #default="scope">
-          {{ scope.row.title }}
+          <!-- {{ scope.row.title }} -->
+          <el-tooltip
+            class="item"
+            effect="dark"
+            :content="scope.row.title"
+            placement="top"
+          >
+            <div class="wrap_title">{{ scope.row.title }}</div>
+          </el-tooltip>
         </template>
       </el-table-column>
       <el-table-column label="物品描述" width="280">
         <template #default="scope">
-          {{ scope.row.description }}
+          <el-tooltip
+            class="item"
+            effect="dark"
+            :content="scope.row.description"
+            placement="top"
+          >
+            <template #content>
+              <p style="width: 280px">
+                <span>{{ scope.row.description }} </span>
+              </p>
+            </template>
+            <div>
+              <div class="wrap_row2">{{ scope.row.description }}</div>
+            </div>
+          </el-tooltip>
         </template>
       </el-table-column>
-      <el-table-column label="物品标签">
+      <el-table-column label="物品标签" width="280">
         <template #default="scope">
           {{ scope.row.match_tag }}
         </template>
       </el-table-column>
-      <el-table-column label="是否免费邮寄商品">
+      <el-table-column label="是否免费邮寄商品" width="150">
         <template #default="scope">
           {{ SampleMap[scope.row.hasFreeSample] }}
         </template>
       </el-table-column>
       <el-table-column label="佣金率">
-        <template #default="scope">
-          {{ scope.row.commissionRate }}
-        </template>
+        <template #default="scope"> {{ scope.row.commissionRate }}</template>
       </el-table-column>
       <el-table-column label="合作费">
-        <template #default="scope"> {{ scope.row.CooperationFee }} </template>
+        <template #default="scope">
+          {{ scope.row.CooperationFee }}
+        </template>
       </el-table-column>
       <el-table-column label="物品状态">
         <template #default="scope">
@@ -61,13 +83,13 @@
           >
             修改
           </el-button>
-          <el-button
+          <!-- <el-button
             link
             type="primary"
             size="small"
             @click="handleDelete(scope.row)"
             >删除</el-button
-          >
+          > -->
         </template>
       </el-table-column>
     </el-table>
@@ -83,15 +105,43 @@
     <div>
       <el-dialog v-model="dialogVisible">
         <div>
-          <el-table :data="modelRulesData" @current-change="choiceRules">
+          <el-table
+            border
+            :header-cell-style="{
+              backgroundColor: '#f6f7fc',
+              color: '#1f283c',
+              fontSize: '14px',
+              textAlign: 'left',
+            }"
+            :cell-style="{ textAlign: 'left' }"
+            :data="modelRulesData"
+            @current-change="choiceRules"
+          >
             <el-table-column label="建联名称" width="280">
               <template #default="scope">
                 {{ scope.row.name }}
               </template>
             </el-table-column>
             <el-table-column label="视频拍摄要求" width="280">
-              <template #default="scope">
+              <!-- <template #default="scope">
                 {{ scope.row.requirement }}
+              </template> -->
+              <template #default="scope">
+                <el-tooltip
+                  class="item"
+                  effect="dark"
+                  :content="scope.row.requirement"
+                  placement="top"
+                >
+                  <template #content>
+                    <p style="width: 280px">
+                      <span>{{ scope.row.requirement }} </span>
+                    </p>
+                  </template>
+                  <div>
+                    <div class="wrap_row2">{{ scope.row.requirement }}</div>
+                  </div>
+                </el-tooltip>
               </template>
             </el-table-column>
             <el-table-column label="佣金">
@@ -232,4 +282,13 @@ defineExpose({
   GetProducts,
 });
 </script>
-<style lang=""></style>
+<style lang="scss" scoped>
+.wrap_row2 {
+  cursor: pointer;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>

@@ -490,17 +490,18 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
-        path: "/usercenter/usermanagement/UserManagement",
-        name: "usercenter-UserManagement",
+        path: "/usercenter/usermanagement",
+        name: "UserManagement",
         component: () =>
           import("@/views/usercenter/usermanagement/UserManagement.vue"),
         meta: {
           pageTitle: "用户管理",
+          breadcrumbs: ["usermanagement", "UserManagement"],
         },
       },
       {
         path: "/usercenter/shopmanagement/components/addOrEdit",
-        name: "usercenter-addOrEdit",
+        name: "addOrEdit",
         component: () =>
           import("@/views/usercenter/shopmanagement/components/addOrEdit.vue"),
         meta: {
@@ -509,7 +510,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: "/usercenter/shopmanagement/ShopManagement",
-        name: "usercenter-ShopManagement",
+        name: "ShopManagement",
         component: () =>
           import("@/views/usercenter/shopmanagement/ShopManagement.vue"),
         meta: {
@@ -518,7 +519,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: "/usercenter/rechargemanagement/RechargeManagement",
-        name: "usercenter-RechargeManagement",
+        name: "RechargeManagement",
         component: () =>
           import("@/views/usercenter/rechargemanagement/RechargeManagement.vue"),
         meta: {
@@ -551,6 +552,33 @@ const routes: Array<RouteRecordRaw> = [
           import("@/views/productsearch/index.vue"),
         meta: {
           pageTitle: "商品检索",
+        },
+      },
+      {
+        path: "/test/userInfo",
+        name: "user",
+        component: () =>
+          import("@/views/test/userInfo.vue"),
+        meta: {
+          pageTitle: "用户管理",
+        },
+      },
+      {
+        path: "/test/shopInfo",
+        name: "shopInfo",
+        component: () =>
+          import("@/views/test/shopInfo.vue"),
+        meta: {
+          pageTitle: "店铺管理",
+        },
+      },
+      {
+        path: "/test/components/shop/addOrEdit",
+        name: "shop-addOrEdit",
+        component: () =>
+          import("@/views/test/components/shop/addOrEdit.vue"),
+        meta: {
+          pageTitle: "新增/修改",
         },
       },
       {

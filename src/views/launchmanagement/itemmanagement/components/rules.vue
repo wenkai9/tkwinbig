@@ -12,9 +12,9 @@
           backgroundColor: '#f6f7fc',
           color: '#1f283c',
           fontSize: '14px',
-          textAlign: 'center',
+          textAlign: 'left',
         }"
-        :cell-style="{ textAlign: 'center' }"
+        :cell-style="{ textAlign: 'left' }"
         v-loading="loading"
         style="width: 100%"
       >
@@ -23,12 +23,29 @@
             {{ scope.row.name }}
           </template>
         </el-table-column>
-        <el-table-column label="视频拍摄要求" width="280">
-          <template #default="scope">
+        <el-table-column label="视频拍摄要求" width="600">
+          <!-- <template #default="scope">
             {{ scope.row.requirement }}
+          </template> -->
+          <template #default="scope">
+            <el-tooltip
+              class="item"
+              effect="dark"
+              :content="scope.row.requirement"
+              placement="top"
+            >
+              <template #content>
+                <p style="width: 280px">
+                  <span>{{ scope.row.requirement }} </span>
+                </p>
+              </template>
+              <div>
+                <div class="wrap_row2">{{ scope.row.requirement }}</div>
+              </div>
+            </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column label="佣金">
+        <el-table-column label="佣金" width="120">
           <template #default="scope"> ¥{{ scope.row.commission }} </template>
         </el-table-column>
         <el-table-column label="创建日期">
@@ -47,13 +64,13 @@
             >
               修改
             </el-button>
-            <el-button
+            <!-- <el-button
               link
               type="primary"
               size="small"
               @click="handleDelete(scope.row)"
               >删除</el-button
-            >
+            > -->
           </template>
         </el-table-column>
       </el-table>
@@ -254,4 +271,13 @@ const handleDelete = (item: object) => {
     });
 };
 </script>
-<style lang=""></style>
+<style lang="scss" scoped>
+.wrap_row2 {
+  cursor: pointer;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>

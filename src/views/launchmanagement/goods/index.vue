@@ -51,9 +51,9 @@
           backgroundColor: '#f6f7fc',
           color: '#1f283c',
           fontSize: '14px',
-          textAlign: 'center',
+          textAlign: 'left',
         }"
-        :cell-style="{ textAlign: 'center' }"
+        :cell-style="{ textAlign: 'left' }"
         style="width: 100%"
       >
         <el-table-column label="物品名称" width="280">
@@ -62,8 +62,25 @@
           </template>
         </el-table-column>
         <el-table-column label="物品描述" width="280">
-          <template #default="scope">
+          <!-- <template #default="scope">
             {{ scope.row.description }}
+          </template> -->
+          <template #default="scope">
+            <el-tooltip
+              class="item"
+              effect="dark"
+              :content="scope.row.description"
+              placement="top"
+            >
+              <template #content>
+                <p style="width: 280px">
+                  <span>{{ scope.row.description }} </span>
+                </p>
+              </template>
+              <div>
+                <div class="wrap_row2">{{ scope.row.description }}</div>
+              </div>
+            </el-tooltip>
           </template>
         </el-table-column>
         <el-table-column label="物品标签">
@@ -71,7 +88,7 @@
             {{ scope.row.match_tag }}
           </template>
         </el-table-column>
-        <el-table-column label="是否免费寄送样品">
+        <el-table-column label="是否免费寄送样品" width="150">
           <template #default="scope">
             {{ SampleMap[scope.row.hasFreeSample] }}
           </template>
@@ -171,5 +188,13 @@ onMounted(() => {
   color: #46029a;
   border-radius: 0.5rem;
   cursor: pointer;
+}
+.wrap_row2 {
+  cursor: pointer;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

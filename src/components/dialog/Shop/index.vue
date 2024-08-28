@@ -14,9 +14,9 @@
             backgroundColor: '#f6f7fc',
             color: '#1f283c',
             fontSize: '14px',
-            textAlign: 'center',
+            textAlign: 'left',
           }"
-          :cell-style="{ textAlign: 'center' }"
+          :cell-style="{ textAlign: 'left' }"
           style="width: 100%"
           @current-change="choiceShop"
         >

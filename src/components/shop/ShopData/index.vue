@@ -12,9 +12,9 @@
           backgroundColor: '#f6f7fc',
           color: '#1f283c',
           fontSize: '14px',
-          textAlign: 'center',
+          textAlign: 'left',
         }"
-        :cell-style="{ textAlign: 'center' }"
+        :cell-style="{ textAlign: 'left' }"
         style="width: 100%"
       >
         <el-table-column prop="shop_name" label="店铺名称" width="180" />
@@ -188,8 +188,12 @@ const handleDelete = (item: object) => {
 // getShopData();
 
 const handleJump = () => {
+  // const url = router.resolve({
+  //   path: "/usercenter/shopmanagement/components/addOrEdit",
+  // });
+  // window.open(url.href, "_blank");
   const url = router.resolve({
-    path: "/usercenter/shopmanagement/components/addOrEdit",
+    path: "/test/components/shop/addOrEdit",
   });
   window.open(url.href, "_blank");
 };

@@ -153,7 +153,7 @@
           <span
             class="fs-8 rounded bg-light px-3 py-2 position-absolute translate-middle-y top-50 end-0"
           >
-            {{ currentLangugeLocale.name || "" }}
+            <!-- {{ currentLangugeLocale.name || "" }} -->
             <!-- <img
               class="w-15px h-15px rounded-1 ms-2"
               :src="currentLangugeLocale.flag"

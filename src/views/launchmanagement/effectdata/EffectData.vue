@@ -48,9 +48,9 @@
           backgroundColor: '#f6f7fc',
           color: '#1f283c',
           fontSize: '14px',
-          textAlign: 'center',
+          textAlign: 'left',
         }"
-        :cell-style="{ textAlign: 'center' }"
+        :cell-style="{ textAlign: 'left' }"
       >
         <el-table-column label="建立任务名称" width="200">
           <template #default="scope">
@@ -130,9 +130,9 @@
             backgroundColor: '#f6f7fc',
             color: '#1f283c',
             fontSize: '14px',
-            textAlign: 'center',
+            textAlign: 'left',
           }"
-          :cell-style="{ textAlign: 'center' }"
+          :cell-style="{ textAlign: 'left' }"
         >
           <el-table-column prop="type" label="类型" width="180">
             <template #default="scope">
@@ -174,9 +174,9 @@
               backgroundColor: '#f6f7fc',
               color: '#1f283c',
               fontSize: '14px',
-              textAlign: 'center',
+              textAlign: 'left',
             }"
-            :cell-style="{ textAlign: 'center' }"
+            :cell-style="{ textAlign: 'left' }"
           >
             <!-- <el-table-column prop="creator_id" label="达人ID" width="220" /> -->
             <el-table-column prop="nick_name" label="昵称" width="180" />

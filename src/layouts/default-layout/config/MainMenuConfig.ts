@@ -149,8 +149,63 @@ const MainMenuConfig: Array<MenuItem> = [
   //     },
   //   ]
   // },
+  // {
+  //   route: "/productsearch",
+  //   pages: [
+  //     {
+  //       sectionTitle: "authentication",
+  //       keenthemesIcon: "fingerprint-scanning",
+  //       bootstrapIcon: "bi-sticky",
+  //       sub: [
+  //         {
+  //           sectionTitle: "basicFlow",
+  //           sub: [
+  //             {
+  //               heading: "signIn",
+  //               route: "/sign-in",
+  //             },
+  //             {
+  //               heading: "signUp",
+  //               route: "/sign-up",
+  //             },
+  //             {
+  //               heading: "passwordReset",
+  //               route: "/password-reset",
+  //             },
+  //           ],
+  //         },
+  //         {
+  //           heading: "multiStepSignUp",
+  //           route: "/multi-step-sign-up",
+  //         },
+  //         {
+  //           heading: "error404",
+  //           route: "/404",
+  //         },
+  //         {
+  //           heading: "error500",
+  //           route: "/500",
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       sectionTitle: "商品检索",
+  //       route: "/productsearch",
+  //       keenthemesIcon: "purchase",
+  //       sub: [
+  //         {
+  //           heading: "商品查询",
+  //           route: "/productsearch/index",
+
+  //         }]
+  //     }
+
+
+  //   ]
+  // },
+
   {
-    route: "/productsearch",
+    route: "/test",
     pages: [
       {
         sectionTitle: "authentication",
@@ -188,82 +243,88 @@ const MainMenuConfig: Array<MenuItem> = [
           },
         ],
       },
-      // {
-      //   sectionTitle: "商品检索",
-      //   route: "/productsearch",
-      //   keenthemesIcon: "purchase",
-      //   sub: [
-      //     {
-      //       heading: "商品查询",
-      //       route: "/productsearch/index",
 
-      //     }]
-      // }
-
-
-    ]
-  },
-  {
-    // heading: "usercenter",
-    route: "/usercenter",
-    pages: [
-      {
-        sectionTitle: "authentication",
-        keenthemesIcon: "fingerprint-scanning",
-        bootstrapIcon: "bi-sticky",
-        sub: [
-          {
-            sectionTitle: "basicFlow",
-            sub: [
-              {
-                heading: "signIn",
-                route: "/sign-in",
-              },
-              {
-                heading: "signUp",
-                route: "/sign-up",
-              },
-              {
-                heading: "passwordReset",
-                route: "/password-reset",
-              },
-            ],
-          },
-          {
-            heading: "multiStepSignUp",
-            route: "/multi-step-sign-up",
-          },
-          {
-            heading: "error404",
-            route: "/404",
-          },
-          {
-            heading: "error500",
-            route: "/500",
-          },
-        ],
-      },
       {
         sectionTitle: "用户中心",
-        route: "/usercenter",
+        route: "/test",
         keenthemesIcon: "profile-user",
         sub: [
           {
             heading: "用户管理",
-            route: "/usercenter/usermanagement/UserManagement",
-          },
-          {
+            route: "/test/userInfo",
+
+          }, {
             heading: "店铺管理",
-            route: "/usercenter/shopmanagement/ShopManagement",
-          },
-          // {
-          //   heading: "充值管理",
-          //   route: "/usercenter/rechargemanagement/RechargeManagement",
-          // }
-        ]
-      }
+            route: "/test/shopInfo",
+
+          }]
+
+      },
+
+
     ]
   },
+  // {
+  //   // heading: "usercenter",
+  //   route: "/usercenter",
+  //   pages: [
+  //     {
+  //       sectionTitle: "authentication",
+  //       keenthemesIcon: "fingerprint-scanning",
+  //       bootstrapIcon: "bi-sticky",
+  //       sub: [
+  //         {
+  //           sectionTitle: "basicFlow",
+  //           sub: [
+  //             {
+  //               heading: "signIn",
+  //               route: "/sign-in",
+  //             },
+  //             {
+  //               heading: "signUp",
+  //               route: "/sign-up",
+  //             },
+  //             {
+  //               heading: "passwordReset",
+  //               route: "/password-reset",
+  //             },
+  //           ],
+  //         },
+  //         {
+  //           heading: "multiStepSignUp",
+  //           route: "/multi-step-sign-up",
+  //         },
+  //         {
+  //           heading: "error404",
+  //           route: "/404",
+  //         },
+  //         {
+  //           heading: "error500",
+  //           route: "/500",
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       sectionTitle: "用户中心",
+  //       route: "/usercenter",
+  //       keenthemesIcon: "profile-user",
+  //       sub: [
+  //         {
+  //           heading: "用户管理",
+  //           route: "/usercenter/usermanagement",
+  //         },
+  //         {
+  //           heading: "店铺管理",
+  //           route: "/usercenter/shopmanagement/ShopManagement",
+  //         },
+  //         {
+  //           heading: "充值管理",
+  //           route: "/usercenter/rechargemanagement/RechargeManagement",
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // },
   // chat对话
   // {
   //   route: "/chat",
