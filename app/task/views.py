@@ -27,7 +27,7 @@ def create_task(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            required_fields = ['name', 'productId', 'shopId', 'userId', 'p_name', 'c_name', 'r_name']  # 需要检验 必传
+            required_fields = ['name', 'productId', 'shopId', 'userId', 'p_name', 'c_name', 'r_name']
             for field in required_fields:
                 if field not in data:
                     return JsonResponse({"code": 400, "errmsg": f"缺少字段： {field}"}, status=400)
@@ -98,75 +98,86 @@ def start_task(request, taskId):
 
 
 @csrf_exempt
-def list_tasks(request, page=None, task_id=None):
+def list_tasks(request, task_id=None):
     if request.method == 'GET':
-        if task_id:
-            try:
-                task = Task.objects.get(taskId=task_id)
-                serialized_task = {
-                    'taskId': task.taskId,
-                    'name': task.name,
-                    'product_title': Goods.objects.get(id=task.product_id).title,
-                    'status': {"1": "未启动", "2": "正在进行", "3": "已完成"}[task.status],
-                    'shop_id': task.shop_id,
-                    'shop_name': task.shop.shop_name,
-                    'send_quantity': task.send_quantity,
-                    'willing_quantity': task.willing_quantity,
-                    'match_quantity': task.match_quantity,
-                    'total_invitations': task.total_invitations,
-                    'createAt': task.createAt.strftime('%Y-%m-%d %H:%M:%S'),
-                    # 包含用户信息
-                    'user': {
-                        'id': task.user.user_id,
-                        'username': task.user.username,
-                        'email': task.user.email,
-                        'number': task.user.number,
-                        'company': task.user.company
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 400, 'errmsg': '未提供有效的身份认证,请重新登录'})
+        try:
+            if task_id:
+                try:
+                    task = Task.objects.get(taskId=task_id)
+                    serialized_task = {
+                        'taskId': task.taskId,
+                        'name': task.name,
+                        'product_title': Goods.objects.get(id=task.product_id).title,
+                        'status': {"1": "未启动", "2": "正在进行", "3": "已完成"}[task.status],
+                        'shop_id': task.shop_id,
+                        'shop_name': task.shop.shop_name,
+                        'send_quantity': task.send_quantity,
+                        'willing_quantity': task.willing_quantity,
+                        'match_quantity': task.match_quantity,
+                        'total_invitations': task.total_invitations,
+                        'createAt': task.createAt.strftime('%Y-%m-%d %H:%M:%S'),
+                        'user': {
+                            'id': task.user.user_id,
+                            'username': task.user.username,
+                            'email': task.user.email,
+                            'number': task.user.number,
+                            'company': task.user.company
+                        }
                     }
-                }
-                return JsonResponse({"code": 200, "task": serialized_task})
-            except Task.DoesNotExist:
-                return JsonResponse({"code": 404, "errmsg": "任务不存在"})
-        else:
-            all_tasks = Task.objects.all().order_by('taskId')
-            total_tasks = all_tasks.count()
-            # 从请求中获取 size 参数，如果未提供，默认为 10
-            size = int(request.GET.get('size', 10))
-            paginator = Paginator(all_tasks, size)
-            try:
-                tasks = paginator.page(page)
-            except PageNotAnInteger:
-                tasks = paginator.page(1)
-            except EmptyPage:
-                tasks = paginator.page(paginator.num_pages)
-            serialized_tasks = []
-            for task in tasks:
-                serialized_task = {
-                    'taskId': task.taskId,
-                    'name': task.name,
-                    'product_title': Goods.objects.get(id=task.product_id).title,
-                    'status': {"1": "未启动", "2": "正在进行", "3": "已完成"}[task.status],
-                    'shop_id': task.shop_id,
-                    'shop_name': task.shop.shop_name,
-                    'send_quantity': task.send_quantity,
-                    'willing_quantity': task.willing_quantity,
-                    'match_quantity': task.match_quantity,
-                    'total_invitations':task.total_invitations,
-                    'createAt': task.createAt.strftime('%Y-%m-%d %H:%M:%S'),
-                    # 包含用户信息
-                    'user': {
-                        'id': task.user.user_id,
-                        'username': task.user.username,
-                        'email': task.user.email,
-                        'number': task.user.number,
-                        'company': task.user.company
+                    return JsonResponse({"code": 200, "task": serialized_task})
+                except Task.DoesNotExist:
+                    return JsonResponse({"code": 404, "errmsg": "任务不存在"})
+            else:
+                all_tasks = Task.objects.all().order_by('taskId')
+                total_tasks = all_tasks.count()
+                size = int(request.GET.get('size', 10)) # 默认大小为 10，如果未提供
+                paginator = Paginator(all_tasks, size)
+                page_number = request.GET.get('page', 1)  # 默认第一页，如果未提供
+                try:
+                    tasks = paginator.page(page_number)
+                except PageNotAnInteger:
+                    tasks = paginator.page(1)
+                except EmptyPage:
+                    tasks = paginator.page(paginator.num_pages)
+
+                serialized_tasks = []
+                for task in tasks:
+                    serialized_task = {
+                        'taskId': task.taskId,
+                        'name': task.name,
+                        'product_title': Goods.objects.get(id=task.product_id).title,
+                        'status': {"1": "未启动", "2": "正在进行", "3": "已完成"}[task.status],
+                        'shop_id': task.shop_id,
+                        'shop_name': task.shop.shop_name,
+                        'send_quantity': task.send_quantity,
+                        'willing_quantity': task.willing_quantity,
+                        'match_quantity': task.match_quantity,
+                        'total_invitations': task.total_invitations,
+                        'createAt': task.createAt.strftime('%Y-%m-%d %H:%M:%S'),
+                        'user': {
+                            'id': task.user.user_id,
+                            'username': task.user.username,
+                            'email': task.user.email,
+                            'number': task.user.number,
+                            'company': task.user.company
+                        }
                     }
-                }
-                serialized_tasks.append(serialized_task)
-            return JsonResponse(
-                {"code": 200, "tasks": serialized_tasks, "page": tasks.number, "total_tasks": total_tasks})
+                    serialized_tasks.append(serialized_task)
+
+                return JsonResponse({
+                    "code": 200,
+                    "tasks": serialized_tasks,
+                    "page": tasks.number,
+                    "total_pages": paginator.num_pages,
+                    "total_tasks": total_tasks
+                })
+        except Exception as e:
+            return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
     else:
-        return JsonResponse({'code': 405, 'errmsg': '请求方法不支持'}, status=400)
+        return JsonResponse({'code': 405, 'errmsg': '仅支持 GET 请求'}, status=405)
 
 
 @csrf_exempt
@@ -181,7 +192,7 @@ def get_shop(request, taskId):
             }
             return JsonResponse({"code": 200, "data": serialized_task}, status=200)
         except Task.DoesNotExist:
-            return JsonResponse({'code': 400, 'errmsg': '未找到任务'}, status=400)
+            return JsonResponse({'code': 400, 'errmsg': '未找到任务'})
     else:
         return JsonResponse({'code': 405, 'errmsg': '请求方法不支持'}, status=400)
 
@@ -210,7 +221,7 @@ def delete_task(request, taskId):
             task.delete()
             return JsonResponse({"code": 200, "msg": "任务删除成功"}, status=200)
         except Task.DoesNotExist:
-            return JsonResponse({'code': 400, 'errmsg': '未找到任务'}, status=400)
+            return JsonResponse({'code': 400, 'errmsg': '未找到任务'})
     else:
         return JsonResponse({'code': 400, 'errmsg': '请求方法不支持'}, status=400)
 
@@ -367,7 +378,7 @@ def tk_invitation(request):
             shop_id = task.shop_id
 
             if not products:
-                return JsonResponse({"code": 404, "errmsg": f"找不到与 taskId {task_id} 相关的商品信息。"}, status=404)
+                return JsonResponse({"code": 404, "errmsg": f"找不到与 taskId {task_id} 相关的商品信息。"})
 
             # 设置分页参数
             start_index = 0
@@ -460,11 +471,11 @@ def tk_invitation(request):
             }, status=200)
 
         except Task.DoesNotExist:
-            return JsonResponse({"code": 404, "errmsg": f"找不到 taskId {task_id} 对应的任务."}, status=404)
+            return JsonResponse({"code": 404, "errmsg": f"找不到 taskId {task_id} 对应的任务."})
         except User.DoesNotExist:
-            return JsonResponse({"code": 404, "errmsg": f"找不到与 taskId {task_id} 相关的用户信息."}, status=404)
+            return JsonResponse({"code": 404, "errmsg": f"找不到与 taskId {task_id} 相关的用户信息."})
         except Goods.DoesNotExist:
-            return JsonResponse({"code": 404, "errmsg": f"找不到与 taskId {task_id} 相关的商品信息."}, status=404)
+            return JsonResponse({"code": 404, "errmsg": f"找不到与 taskId {task_id} 相关的商品信息."})
         except Exception as e:
             print(e)
             return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
@@ -624,7 +635,7 @@ def get_task_creator(request, taskId):
         try:
             invitation = Tk_Invitation.objects(id=taskId).first()
             if not invitation:
-                return JsonResponse({"code": 404, "errmsg": "任务未找到"}, status=404)
+                return JsonResponse({"code": 404, "errmsg": "任务未找到"})
 
             creators = invitation.creator_id_list
 
@@ -696,11 +707,11 @@ def seller_im(request, taskId):
                     sentAt=data.get('sentAt')
                 )
 
-                # 保存数据到 MongoDB
+                # 保存数据到MongoDB
                 invitation_instance.save()
                 return JsonResponse(data, status=200)
         except Task.DoesNotExist:
-            return JsonResponse({"code": 400, "errmsg": "未找到任务"}, status=400)
+            return JsonResponse({"code": 200, "errmsg": "未找到任务"})
         except Exception as e:
             return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
 
@@ -839,7 +850,7 @@ def get_rpa_tasks(request, taskId):
     try:
         tasks = Tk_invacation.objects.filter(delivery_id=taskId)
         if not tasks:
-            return JsonResponse({"code": 404, "errmsg": "未找到任务"}, status=404)
+            return JsonResponse({"code": 204, "errmsg": "未找到任务"})
         tasks_data = [model_to_dict(task) for task in tasks]
 
         return JsonResponse({"code": 200, "data": tasks_data}, status=200)

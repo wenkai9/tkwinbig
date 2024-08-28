@@ -95,6 +95,9 @@ def add_product(request, page=None):
 @csrf_exempt
 def list_products(request, page=None):
     if request.method == 'GET':
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 400, 'errmsg': '未提供有效的身份认证,请重新登录'})
         try:
             size = int(request.GET.get('size', 10))  # 如果未提供，默认为 10
             all_products = Goods.objects.all().order_by('id')
@@ -417,6 +420,9 @@ def download_excel(request):
 @csrf_exempt
 def list_category_products(request):
     if request.method == 'GET':
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 400, 'errmsg': '未提供有效的身份认证,请重新登录'})
         category_id = request.GET.get('id')
         category_type = request.GET.get('type')
 
@@ -492,6 +498,9 @@ def list_category_products(request):
 @csrf_exempt
 def list_products_all(request):
     if request.method == 'GET':
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 400, 'errmsg': '未提供有效的身份认证,请重新登录'})
         category_id = request.GET.get('id')  # 获取请求中的 id 参数
         category_type = request.GET.get('type')  # 获取请求中的 type 参数
 
@@ -557,6 +566,9 @@ def add_rule(request):
 @csrf_exempt
 def list_rule(request, page=None):
     if request.method == 'GET':
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 400, 'errmsg': '未提供有效的身份认证,请重新登录'})
         try:
             size = int(request.GET.get('size', 10))  # 如果未提供，默认为 10
             all_rules = RaidsysRule.objects.all().order_by('id')

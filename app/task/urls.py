@@ -8,10 +8,10 @@ urlpatterns = [
     path('start_task/<str:taskId>', views.start_task, name='start_task'),
     # 获取全部任务
     path('list_tasks', views.list_tasks, name='list_tasks'),
+    # 获取分页任务
+    path('list_tasks/<str:task_id>', views.list_tasks, name='list_tasks_page'),
     # 获取投放任务下的rpa任务
     path('get_rpa_tasks/<str:taskId>', views.get_rpa_tasks, name='get_rpa_tasks'),
-    # 获取分页任务
-    path('list_tasks/<int:page>', views.list_tasks, name='list_tasks_page'),
     # 获取任务下的店铺
     path('get_shop/<int:taskId>', views.get_shop, name='get_product'),
     # 所有任务总和
