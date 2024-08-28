@@ -1,6 +1,6 @@
 import service from "@/service/service";
 import axios from 'axios';
-export function ApiGetProducts(params: any, page: number, size: number) {
+export function ApiGetProducts(params: any, page: Number, size: Number) {
   return service.request({
     url: `/user/list_products?page=${page}&size=${size}`,
     method: "get",
@@ -8,7 +8,7 @@ export function ApiGetProducts(params: any, page: number, size: number) {
   });
 }
 
-export function ApiAddProducts(data: any, page: number, size: number) {
+export function ApiAddProducts(data: any, page: Number, size: Number) {
   return service.request({
     url: `/user/add_products?page=${page}&size=${size}`,
     // method: "post",
@@ -90,7 +90,7 @@ export function ApiExportProducts() {
 }
 
 // 查询建联规则列表
-export function ApiGetListRules(page: number, size: number) {
+export function ApiGetListRules(page: Number, size: Number) {
   return service.request({
     url: `/user/list_rules?page=${page}&size=${size}`,
     method: "get",
@@ -123,9 +123,9 @@ export function ApiAddRulesRules(data: object) {
 
 
 // 查询任务列表
-export function ApiGetTasks(tage: number, size: number) {
+export function ApiGetTasks(page: Number, size: Number) {
   return service.request({
-    url: `/user/list_tasks?tage=${tage}&size=${size}`,
+    url: `/user/list_tasks?page=${page}&size=${size}`,
     method: "get",
   });
 }

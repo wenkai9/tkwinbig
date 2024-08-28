@@ -97,9 +97,8 @@
             {{ scope.row.match_quantity || "/" }}
           </template>
         </el-table-column>
-        <!-- <el-table-column prop="createAt" label="创建时间" width="180" /> -->
 
-        <el-table-column fixed="right" label="查看合作用户详情" width="180">
+        <el-table-column fixed="right" label="查看投放任务详情" width="180">
           <template #default="scope">
             <el-button
               link
@@ -195,7 +194,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { reactive, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import {
   ApiGetTasks,
@@ -227,28 +226,35 @@ const pageObj = reactive({
   size: 10,
   total: 0,
 });
-ApiGetTasks(pageObj.page, pageObj.size)
-  .then((res) => {
-    loading.value = true;
-    console.log(res, "查询");
-    if (res.code != 200) {
-      return ElMessage({
-        message: res.errmsg,
-        type: "warning",
-      });
-    }
-    modelTasksData.value = [...res.tasks];
-    pageObj.total = res.total_tasks;
-  })
-  .finally(() => {
-    loading.value = false;
-  });
+const GetTasks = () => {
+  ApiGetTasks(pageObj.page, pageObj.size)
+    .then((res) => {
+      loading.value = true;
+      console.log(res, "查询");
+      if (res.code != 200) {
+        return ElMessage({
+          message: res.errmsg,
+          type: "warning",
+        });
+      }
+      modelTasksData.value = [...res.tasks];
+
+      pageObj.total = res.total_tasks;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
 
 const changePage = (page: number) => {
-  ApiGetTasks(page, pageObj.size);
+  pageObj.page = page;
+  GetTasks();
 };
 const changeSize = (size: number) => {
-  ApiGetTasks(pageObj.page, size);
+  pageObj.size = size;
+  pageObj.page = 1;
+  GetTasks();
+  // ApiGetTasks(pageObj.page, size);
 };
 
 const userDialog = ref(false);
@@ -294,6 +300,9 @@ ApiGetSummary().then((res) => {
   modelSummary.send_quantity_sum = res.data.send_quantity_sum;
   modelSummary.willing_quantity_sum = res.data.willing_quantity_sum;
   modelSummary.total_invitations_sum = res.data.total_invitations_sum;
+});
+onMounted(() => {
+  GetTasks();
 });
 </script>
 <style scoped lang="scss">

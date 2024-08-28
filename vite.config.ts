@@ -54,8 +54,17 @@ export default defineConfig({
       },
     },
   },
-  base: "/metronic8/vue/demo1/",
+  // base: "/metronic8/vue/demo1/",
+  base: "/",
   build: {
     chunkSizeWarningLimit: 3000,
+    target: "es2015",
+    terserOptions: {
+      compress: {
+        keep_infinity: true,
+        pure_funcs: ["console.log"],
+      },
+    },
   },
+
 });

@@ -188,17 +188,17 @@ const MainMenuConfig: Array<MenuItem> = [
           },
         ],
       },
-      {
-        sectionTitle: "商品检索",
-        route: "/productsearch",
-        keenthemesIcon: "purchase",
-        sub: [
-          {
-            heading: "商品查询",
-            route: "/productsearch/index",
+      // {
+      //   sectionTitle: "商品检索",
+      //   route: "/productsearch",
+      //   keenthemesIcon: "purchase",
+      //   sub: [
+      //     {
+      //       heading: "商品查询",
+      //       route: "/productsearch/index",
 
-          }]
-      }
+      //     }]
+      // }
 
 
     ]
