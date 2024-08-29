@@ -24,10 +24,16 @@ urlpatterns = [
     path('chat/<str:taskId>', views.chat, name='chat'),
     # chat2
     path('chat2', views.chat2, name='chat2'),
+    # 根据cookie拿数据库表密钥
+    path('get_db_key', views.get_db_key, name='get_db_key'),
+    # 获取RPA客户端密钥
+    path('get_rpa_key', views.get_rpa_key, name='get_rpa_key'),
     # 达人邀约
     path('tk_invitation', views.tk_invitation, name='tk_invitation'),
-    # 达人邀约接收邀约状态
+    # 获取邀约任务信息
     path('get_invitation/<str:taskId>', views.get_invitation, name='get_invitation'),
+    # 获取达人邀约成功邀约信息
+    path('get_invitation/<str:taskId>/detail', views.get_invitation_detail, name='get_invitation_detail'),
     # 展示邀约任务的达人
     path('get_task_creator/<str:taskId>', views.get_task_creator, name='get_task_creator'),
     # 达人私信

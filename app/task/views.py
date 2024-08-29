@@ -1,7 +1,9 @@
 from django.db.models import Sum
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from app.task.models import (Task, Tk_im, Creators, Tkuser_im, Tk_invacation, Tk_im, Tk_chat, Tk_information,
-                             Tk_seller_im, Content, Tk_Invitation, Creator, BaseInfo, Product, Image)
+                             Tk_seller_im, Content, Tk_Invitation, Creator, BaseInfo, Product, Image, Rpa_key)
+import base64
+from django.db import transaction
 from bson import ObjectId
 from mongoengine import DoesNotExist
 import json
@@ -15,11 +17,12 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from utils.get_token import get_token
+import jwt
+from django.conf import settings
+
 '''
 D://PyCharmProject//tkwinbig//djangoProject1//settings.py
 '''
-
-
 
 
 @csrf_exempt
@@ -43,7 +46,7 @@ def create_task(request):
                 match_quantity=0,
                 willing_quantity=0,
                 send_quantity=0,
-                total_invitations = 0,
+                total_invitations=0,
                 createAt=datetime.now()
             )
 
@@ -102,7 +105,7 @@ def list_tasks(request, task_id=None):
     if request.method == 'GET':
         token = request.COOKIES.get('Authorization')
         if not token:
-            return JsonResponse({'code': 400, 'errmsg': '未提供有效的身份认证,请重新登录'})
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
         try:
             if task_id:
                 try:
@@ -133,7 +136,7 @@ def list_tasks(request, task_id=None):
             else:
                 all_tasks = Task.objects.all().order_by('taskId')
                 total_tasks = all_tasks.count()
-                size = int(request.GET.get('size', 10)) # 默认大小为 10，如果未提供
+                size = int(request.GET.get('size', 10))  # 默认大小为 10，如果未提供
                 paginator = Paginator(all_tasks, size)
                 page_number = request.GET.get('page', 1)  # 默认第一页，如果未提供
                 try:
@@ -205,7 +208,7 @@ def get_tasks_sum(request):
         match_quantity_sum = Task.objects.aggregate(Sum('match_quantity'))['match_quantity__sum'] or 0
         total_invitations_sum = Task.objects.aggregate(Sum('total_invitations'))['total_invitations__sum'] or 0
         response_data = {
-            "total_invitations_sum":total_invitations_sum,
+            "total_invitations_sum": total_invitations_sum,
             "send_quantity_sum": send_quantity_sum,
             "willing_quantity_sum": willing_quantity_sum,
             "match_quantity_sum": match_quantity_sum
@@ -326,6 +329,7 @@ http://120.27.208.224:8002/chat2
 '''
 
 
+@csrf_exempt
 def chat2(request):
     if request.method == 'POST':
         try:
@@ -345,8 +349,101 @@ def chat2(request):
 
 
 '''
+获取RPA客户端的密钥
+'''
+
+
+@csrf_exempt
+def get_rpa_key(request):
+    if request.method == 'POST':
+        try:
+
+            with transaction.atomic():
+                token = request.COOKIES.get('Authorization')
+                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+                user_id = payload['user_id']
+
+                # 查询用户信息
+                user = User.objects.get(user_id=user_id)
+                request_data = json.loads(request.body)
+                username = request_data.get('username')
+                password = request_data.get('password')
+
+                if not username or not password:
+                    return JsonResponse({"code": 400, "errmsg": "缺少用户名或密码"}, status=400)
+
+                # 检查给定的用户名和密码是否已有 RPA 密钥
+                rpa_key_obj, created = Rpa_key.objects.get_or_create(
+                    username=username,
+                    password=password,
+                    user_id=user_id,
+                    defaults={'key': '', 'has_requested': False}
+                )
+
+                if not created and rpa_key_obj.has_requested:
+                    # 如果 has_requested 为 True，返回现有的密钥
+                    return JsonResponse({
+                        "code": 200,
+                        "msg": f"{rpa_key_obj.key}",
+                        "has_requested": rpa_key_obj.has_requested
+                    }, status=200)
+                else:
+                    # 生成新的 RPA 密钥
+                    key = f"{username}:{password}"
+                    rpa_key = (base64.b64encode(key.encode('utf-8'))).decode('utf-8')
+
+                    # 更新密钥并将 has_requested 设置为 True
+                    rpa_key_obj.username = username
+                    rpa_key_obj.password = password
+                    rpa_key_obj.key = rpa_key
+                    rpa_key_obj.user_id = user_id
+                    rpa_key_obj.has_requested = True
+                    rpa_key_obj.save()
+
+                    return JsonResponse({
+                        "code": 200,
+                        "msg": f"RPA密钥为: {rpa_key}",
+                        "has_requested": rpa_key_obj.has_requested
+                    }, status=200)
+        except json.JSONDecodeError:
+            return JsonResponse({"code": 400, "errmsg": "请求数据格式错误"}, status=400)
+
+        except Exception as e:
+            return JsonResponse({"code": 500, "errmsg": f"服务器内部错误: {str(e)}"}, status=500)
+
+    else:
+        return JsonResponse({"code": 405, "errmsg": "方法不允许"}, status=405)
+
+
+@csrf_exempt
+def get_db_key(request):
+    if request.method == 'POST':
+        try:
+            token = request.COOKIES.get('Authorization')
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            if not token:
+                return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+            user_id = payload['user_id']
+            key = Rpa_key.objects.get(user_id=user_id).key
+            has_requested = Rpa_key.objects.get(user_id=user_id).has_requested
+            data = {
+                "key": key,
+                "has_requested": has_requested
+            }
+            if key:
+                return JsonResponse({"code": 200, "data": data}, status=200)
+            else:
+                return JsonResponse({"code": 404, "errmsg": "未找到用户的数据库密钥"}, status=404)
+        except Exception as e:
+            return JsonResponse({"code": 500, "errmsg": f"服务器内部错误: {str(e)}"}, status=500)
+    else:
+        return JsonResponse({"code": 405, "errmsg": "方法不允许"}, status=405)
+
+
+'''
 达人邀约
 '''
+
 
 def get_creator_ids(task_id, start_index, batch_size):
     """ 从数据库中获取创作者 ID 列表 """
@@ -479,78 +576,19 @@ def tk_invitation(request):
         except Exception as e:
             print(e)
             return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
-# @csrf_exempt
-# def invication(request, taskId):
-#     if request.method == 'POST':
-#         try:
-#             task = Task.objects.get(taskId=taskId)
-#             user = User.objects.get(user_id=task.user_id)
-#             products = Goods.objects.filter(id=task.product_id).first()
-#             region = task.region
-#             shop_id = task.shop_id
-#             refTaskId = ''.join(random.choices(string.digits, k=9))  # 生成随机的refTaskId
-#             n = ''.join(random.choices(string.digits, k=4))
-#             data = {
-#                 "type": 2,
-#                 "region": region,
-#                 "refTaskId": refTaskId,
-#                 "content": {
-#                     "shopId": shop_id,
-#                     "name": f"YJQ-08-07-{n}",
-#                     "products": [
-#                         {
-#                             "productId": task.product_id,
-#                             "commissionRate": float(products.commissionRate)
-#                         }
-#                     ],
-#                     "creatorIds": "creator_ids",
-#                     "expireDateTime": "2024-08-30",
-#                     "sampleRule": {
-#                         "hasFreeSample": True,
-#                         "sampleQuantity": 10
-#                     },
-#                     "message": "Hi, dear! We have been following your amazing content and believe that "
-#                                "your unique style and creativity would be a perfect fit for our brand!"
-#                                " We are here to invite you to try and test our Lipstick Shaver. If you have"
-#                                " any interest, please let us know, so that we can discuss more details."
-#                                " Thank you so much!",
-#                     "contactInfo": {
-#                         "email": user.email,
-#                         "phone": user.number,
-#                         "country": user.company
-#                     }
-#                 }
-#             }
-#
-#             print(f"发送数据到 taskId {taskId}: {data}")
-#             print(json.dumps(data))
-#             url = f'https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/creator-invitation'
-#             response = requests.post(url=url, headers=headers, json=data)
-#             print(response.status_code)
-#             res = response.json()
-#             if response.status_code == 200:
-#                 Tk_invacation.objects.create(
-#                     userId=data.get('userId'),
-#                     taskId=res.get('taskId'),
-#                     type=res.get('type'),
-#                     region=res.get('region'),
-#                     refTaskid=data.get('refTaskId'),
-#                     status=res.get('status'),
-#                     receivestatus=res.get('receivestatus'),
-#                     message=res.get('message'),
-#                     createAt=res.get('createdAt'),
-#                     complateAt=res.get('complatedAt'),
-#                 )
-#
-#         except Task.DoesNotExist:
-#             print(f"找不到 taskId {taskId} 对应的任务。")
-#
-#         except User.DoesNotExist:
-#             print(f"找不到与 taskId {taskId} 相关的用户信息。")
-#         except Goods.DoesNotExist:
-#             print(f"找不到与 taskId {taskId} 相关的商品信息。")
-#         except Exception as e:
-#             print(f"发生异常: {str(e)}")
+
+
+@csrf_exempt
+def get_invitation(request, taskId):
+    if request.method == 'GET':
+        access_token = get_token()
+        token = 'Bearer ' + access_token
+        headers = {'Content-Type': 'application/json', 'Authorization': token}
+        url = f"https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/creator-invitation/{taskId}"
+        response = requests.get(url=url, headers=headers)
+        print(response.status_code)
+        if response.status_code == 200:
+            data = response.json()
 
 
 '''
@@ -559,9 +597,12 @@ def tk_invitation(request):
 
 
 @csrf_exempt
-def get_invitation(request, taskId):
+def get_invitation_detail(request, taskId):
     if request.method == 'GET':
         try:
+            access_token = get_token()
+            token = 'Bearer ' + access_token
+            headers = {'Content-Type': 'application/json', 'Authorization': token}
             url = f"https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/creator-invitation/{taskId}/detail"
             response = requests.get(url=url, headers=headers)
             print(response.status_code)
@@ -575,6 +616,7 @@ def get_invitation(request, taskId):
                             creator_id=item['base_info']['creator_id'],
                             nick_name=item['base_info']['nick_name'],
                             user_name=item['base_info']['user_name'],
+                            # agreement=item['base_info']['agreement'],
                             selection_region=item['base_info']['selection_region']
                         )
                     ) for item in data.get('creator_id_list', [])
@@ -600,7 +642,7 @@ def get_invitation(request, taskId):
 
                 # 创建并保存 MainData 文档
                 invitation = Tk_Invitation(
-                    id=data['id'],
+                    id=taskId,
                     name=data['name'],
                     creator_cnt=data['creator_cnt'],
                     creator_added_cnt=data['creator_added_cnt'],
@@ -627,6 +669,7 @@ def get_invitation(request, taskId):
 '''
 展示邀约任务的达人
 '''
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 @csrf_exempt
@@ -639,6 +682,17 @@ def get_task_creator(request, taskId):
 
             creators = invitation.creator_id_list
 
+            size = int(request.GET.get('size', 10))
+            paginator = Paginator(creators, size)
+            page_number = request.GET.get('page', 1)
+
+            try:
+                creators_page = paginator.page(page_number)
+            except PageNotAnInteger:
+                creators_page = paginator.page(1)
+            except EmptyPage:
+                creators_page = paginator.page(paginator.num_pages)
+
             creators_data = [
                 {
                     "creator_id": creator.base_info.creator_id,
@@ -648,13 +702,49 @@ def get_task_creator(request, taskId):
                     "product_add_cnt": creator.product_add_cnt,
                     "content_posted_cnt": creator.content_posted_cnt
                 }
-                for creator in creators
+                for creator in creators_page
             ]
-            return JsonResponse({"code": 200, "creators": creators_data}, status=200)
+
+            return JsonResponse({
+                "code": 200,
+                "creators": creators_data,
+                "page": creators_page.number,
+                "total_pages": paginator.num_pages,
+                "total_creators": paginator.count
+            }, status=200)
+
         except Exception as e:
             return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
     else:
         return JsonResponse({"code": 405, "errmsg": "请求方法不支持"}, status=405)
+
+
+# @csrf_exempt
+# def get_task_creator(request, taskId):
+#     if request.method == 'GET':
+#         try:
+#             invitation = Tk_Invitation.objects(id=taskId).first()
+#             if not invitation:
+#                 return JsonResponse({"code": 404, "errmsg": "任务未找到"})
+#
+#             creators = invitation.creator_id_list
+#
+#             creators_data = [
+#                 {
+#                     "creator_id": creator.base_info.creator_id,
+#                     "nick_name": creator.base_info.nick_name,
+#                     "user_name": creator.base_info.user_name,
+#                     "selection_region": creator.base_info.selection_region,
+#                     "product_add_cnt": creator.product_add_cnt,
+#                     "content_posted_cnt": creator.content_posted_cnt
+#                 }
+#                 for creator in creators
+#             ]
+#             return JsonResponse({"code": 200, "creators": creators_data}, status=200)
+#         except Exception as e:
+#             return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
+#     else:
+#         return JsonResponse({"code": 405, "errmsg": "请求方法不支持"}, status=405)
 
 
 '''
@@ -683,6 +773,9 @@ def seller_im(request, taskId):
                 }
             }
             print(json.dumps(data))
+            access_token = get_token()
+            token = 'Bearer ' + access_token
+            headers = {'Content-Type': 'application/json', 'Authorization': token}
             url = "https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/seller-im"
             response = requests.post(url=url, headers=headers, json=data)
             response.raise_for_status()
@@ -716,9 +809,6 @@ def seller_im(request, taskId):
             return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
 
 
-
-
-
 '''
 达人私信获取私信状态
 '''
@@ -727,6 +817,9 @@ def seller_im(request, taskId):
 @csrf_exempt
 def get_im(request, taskId):
     try:
+        access_token = get_token()
+        token = 'Bearer ' + access_token
+        headers = {'Content-Type': 'application/json', 'Authorization': token}
         url = f"https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/seller-im/{taskId}"
         response = requests.get(url=url, headers=headers)
         if response.status_code == 200:
@@ -806,6 +899,9 @@ def get_im(request, taskId):
 @csrf_exempt
 def get_im_info(request, taskId):
     try:
+        access_token = get_token()
+        token = 'Bearer ' + access_token
+        headers = {'Content-Type': 'application/json', 'Authorization': token}
         url = f"https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/seller-im/{taskId}/detail"
         response = requests.get(url=url, headers=headers)
         if response.status_code == 200:
@@ -818,7 +914,6 @@ def get_im_info(request, taskId):
         return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
 
 
-
 '''
 获取达人私信聊天记录
 '''
@@ -827,6 +922,9 @@ def get_im_info(request, taskId):
 @csrf_exempt
 def seller_im_msg(request, taskId):
     try:
+        access_token = get_token()
+        token = 'Bearer ' + access_token
+        headers = {'Content-Type': 'application/json', 'Authorization': token}
         url = f"https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/seller-im/{taskId}/receive"
         response = requests.put(url=url, headers=headers)
         if response.status_code == 200:
@@ -839,11 +937,11 @@ def seller_im_msg(request, taskId):
         return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
 
 
-
 '''
 获取投放任务下的rpa任务
 '''
 from django.forms.models import model_to_dict
+
 
 @csrf_exempt
 def get_rpa_tasks(request, taskId):
@@ -862,14 +960,20 @@ def get_rpa_tasks(request, taskId):
 '''
 在邀约前先过滤下达人
 '''
+
+
+@csrf_exempt
 def filter_creator(request, taskId):
     if request.method == 'GET':
         try:
             tasks = Creators.objects.filter(taskId=taskId).values_list("product", flat=True)[0:10]
             for task in tasks:
-                params ={
+                params = {
                     "keywords": task
                 }
+                access_token = get_token()
+                token = 'Bearer ' + access_token
+                headers = {'Content-Type': 'application/json', 'Authorization': token}
                 url = f"https://qtoss-crawling-proxy.azurewebsites.net/qtoss-crawling-proxy/tiktok/affiliate-center/creator/search/suggestion"
                 response = requests.get(url=url, headers=headers, params=params)
                 response.raise_for_status()
@@ -877,6 +981,7 @@ def filter_creator(request, taskId):
                     data = response.json()
                     return JsonResponse(data, status=200)
                 else:
-                    return JsonResponse({"code": response.status_code, "errmsg": "获取任务失败"}, status=response.status_code)
+                    return JsonResponse({"code": response.status_code, "errmsg": "获取任务失败"},
+                                        status=response.status_code)
         except Exception as e:
             return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
