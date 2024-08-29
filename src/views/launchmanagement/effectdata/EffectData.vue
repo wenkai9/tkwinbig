@@ -3,32 +3,32 @@
     <div class="data_content">
       <div class="grid5">
         <div class="grid5_value">
-          {{ pageObj.total }}
+          {{ pageObj.total || "-" }}
         </div>
         <div>任务数</div>
       </div>
       <div class="grid5">
         <div class="grid5_value">
-          {{ productsTotal }}
+          {{ productsTotal || "-" }}
         </div>
         <div>产品数</div>
       </div>
       <div class="grid5">
         <div class="grid5_value">
-          {{ modelSummary.total_invitations_sum }}
+          {{ modelSummary.total_invitations_sum || "-" }}
         </div>
         <div>总邀约数</div>
       </div>
       <div class="grid5">
         <div class="grid5_value">
-          {{ modelSummary.willing_quantity_sum }}
+          {{ modelSummary.willing_quantity_sum || "-" }}
         </div>
         <div>总邀约发送成功数</div>
       </div>
 
       <div class="grid5">
         <div class="grid5_value">
-          {{ modelSummary.send_quantity_sum }}
+          {{ modelSummary.send_quantity_sum || "-" }}
         </div>
         <div>总邀约回复数</div>
       </div>
@@ -123,7 +123,7 @@
     </div>
     <!-- 投放任务 -->
     <div>
-      <el-dialog v-model="userDialog" title="合作用户信息">
+      <el-dialog width="50%" v-model="userDialog" title="合作用户信息">
         <el-table
           :data="modelRpaTasksData"
           :header-cell-style="{
@@ -134,21 +134,21 @@
           }"
           :cell-style="{ textAlign: 'left' }"
         >
-          <el-table-column prop="type" label="类型" width="180">
+          <el-table-column prop="type" label="类型" width="100">
             <template #default="scope">
               <div>
                 {{ modelTypeMap[scope.row.type] }}
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="status" label="状态" width="180">
+          <el-table-column prop="status" label="状态" width="150">
             <template #default="scope">
               <div>
                 {{ modelStatusMap[scope.row.status] }}
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="message" label="消息" width="250" />
+          <el-table-column prop="message" label="消息" width="480" />
           <el-table-column fixed="right" label="操作">
             <template #default="scope">
               <el-button
@@ -166,7 +166,7 @@
     </div>
     <!-- 邀约达人 -->
     <div>
-      <el-dialog v-model="CreatorDataDialo">
+      <el-dialog v-model="CreatorDataDialo" width="50%">
         <div>
           <el-table
             :data="modelCreatorData"
@@ -178,7 +178,6 @@
             }"
             :cell-style="{ textAlign: 'left' }"
           >
-            <!-- <el-table-column prop="creator_id" label="达人ID" width="220" /> -->
             <el-table-column prop="nick_name" label="昵称" width="180" />
             <el-table-column prop="user_name" label="名称" />
             <el-table-column prop="selection_region" label="区域" />
@@ -188,6 +187,15 @@
               label="发布产品内容数量"
             />
           </el-table>
+          <div>
+            <GlobalPage
+              :page="CreatorPageObj.page"
+              :pageSize="CreatorPageObj.size"
+              :total="CreatorPageObj.total"
+              @changePage="changeCreatorPage"
+              @changeSize="changeCreatorSize"
+            />
+          </div>
         </div>
       </el-dialog>
     </div>
@@ -276,13 +284,30 @@ const GetRpaTasks = (id: String) => {
 // 查看达人
 let modelCreatorData = ref([]);
 let CreatorDataDialo = ref(false);
+let CreatorPageObj = {
+  taskId: "",
+  page: 1,
+  size: 10,
+  total: 0,
+};
 const handleViewCreator = (row: Object) => {
-  console.log(row, "-------------");
   CreatorDataDialo.value = true;
-  ApiGetTaskCreator(row.taskId).then((res: any) => {
-    console.log(res, "达人=========");
-    modelCreatorData.value = res.creators;
-  });
+  CreatorPageObj.taskId = row || row.taskId;
+  ApiGetTaskCreator(row.taskId, CreatorPageObj.page, CreatorPageObj.size).then(
+    (res: any) => {
+      modelCreatorData.value = res.creators;
+      CreatorPageObj.total = res.total_creators;
+    }
+  );
+};
+const changeCreatorPage = (page: Number) => {
+  CreatorPageObj.page = page;
+  handleViewCreator(CreatorPageObj.taskId);
+};
+const changeCreatorSize = (size: Number) => {
+  CreatorPageObj.size = page;
+  CreatorPageObj.page = 1;
+  handleViewCreator(CreatorPageObj.taskId);
 };
 
 let productsTotal = ref();

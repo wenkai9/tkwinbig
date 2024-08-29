@@ -2,6 +2,25 @@
   <div>
     <el-card>
       <el-button type="primary" @click="handleAdd">新建建联</el-button>
+      <el-button v-if="!first" type="primary" @click="handleGetKey"
+        >获取RPA客户端秘钥</el-button
+      >
+      <span v-if="viewKey != ''" style="padding-left: 10px">
+        <span v-if="keyState" style="color: red; padding-right: 10px">{{
+          viewKey.substr(0, 3).padEnd(viewKey.length, "*")
+        }}</span>
+        <span v-if="!keyState" style="color: red; padding-right: 10px">{{
+          viewKey
+        }}</span>
+        <el-button
+          size="small"
+          @click="keyState = !keyState"
+          :type="keyState ? 'danger' : 'info'"
+          >{{ keyState ? "展示" : "隐藏" }}</el-button
+        >
+        <span>&nbsp;&nbsp;(请谨慎保管)</span>
+      </span>
+
       <div style="margin-top: 1.25rem">
         <el-table
           :data="modelTasksData"
@@ -87,6 +106,35 @@
         </div>
       </div>
     </el-card>
+    <el-dialog width="500" v-model="dialogVisible" title="获取QTOSS秘钥">
+      <el-form label-width="auto" class="demo-form-inline">
+        <el-form-item label="QTOSS用户名">
+          <el-input
+            v-model="modelQtossParams.username"
+            placeholder="请输入QTOSS用户名"
+            clearable
+          />
+        </el-form-item>
+        <el-form-item label="QTOSS用户密码">
+          <el-input
+            type="password"
+            v-model="modelQtossParams.password"
+            placeholder="请输入QTOSS用户密码"
+            clearable
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button
+            type="primary"
+            :loading="submitLoading"
+            @click="handleSubmitGetKey"
+            >提交</el-button
+          >
+        </div>
+      </template>
+    </el-dialog>
     <!-- <el-card style="margin-top: 2rem">
       <el-form :inline="true" class="demo-form-inline" label-width="auto">
         <el-form-item label="任务名称:">
@@ -165,6 +213,8 @@ import {
   ApiGetRetrieval,
   ApiStartTasks,
   ApiInvitationCreator,
+  ApigetQtossKey,
+  ApigetQtossUser,
 } from "@/api/launchmanagement";
 import { ApigetShop_tasks, ApigetGood_shop } from "@/api/shop";
 import { ApiPostSendMsg_Invitation } from "../../../api/rpa";
@@ -219,7 +269,53 @@ const changeSize = (size: number) => {
   pageObj.page = 1;
   GetTasks();
 };
+let dialogVisible = ref(false);
+let modelQtossParams = reactive({
+  username: "",
+  password: "",
+});
+let viewKey = ref("");
+let keyState = ref(true);
+let first = ref(false);
+const handleGetKey = () => {
+  dialogVisible.value = true;
+};
+let submitLoading = ref(false);
 
+const getQtossKey = () => {
+  ApigetQtossKey().then((res) => {
+    console.log(res, "========");
+    first.value = res.data.has_requested;
+    viewKey.value = res.data.key;
+  });
+};
+
+const handleSubmitGetKey = () => {
+  if (modelQtossParams.username == "") {
+    return ElMessage({
+      message: "请输入用户名",
+      type: "warning",
+    });
+  } else if (modelQtossParams.password == "") {
+    return ElMessage({
+      message: "请输入密码",
+      type: "warning",
+    });
+  }
+  submitLoading.value = true;
+  const data = {
+    username: modelQtossParams.username,
+    password: modelQtossParams.password,
+  };
+  ApigetQtossUser(data)
+    .then((res) => {
+      console.log(res, "==========");
+      viewKey.value = res.msg;
+    })
+    .finally(() => {
+      submitLoading.value = false;
+    });
+};
 const handleAdd = () => {
   const url = router.resolve({
     path: "/launchmanagement/launchmanagement/components/addOrEdit",
@@ -258,6 +354,7 @@ const handleStart = (id) => {
 };
 onMounted(() => {
   GetTasks();
+  getQtossKey();
 });
 
 // let taskName = ref("");

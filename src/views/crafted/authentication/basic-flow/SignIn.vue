@@ -73,7 +73,7 @@
 
 <script lang="ts" setup>
 import { getAssetPath } from "@/core/helpers/assets";
-import { reactive } from "vue";
+import { reactive, onMounted } from "vue";
 import { useAuthStore, type User } from "@/stores/auth";
 import { useRouter } from "vue-router";
 import { ApiHandlelogin } from "@/api/login";
@@ -89,7 +89,7 @@ const router = useRouter();
 
 const handleLogin = async () => {
   let res = await ApiHandlelogin(getFormData(formLabelAlign));
-  console.log(res, "----------");
+
   if (res.code != 200) {
     return;
   }
@@ -106,4 +106,8 @@ const handleLogin = async () => {
     router.push({ name: "dashboard" });
   }, 1000);
 };
+
+onMounted(() => {
+  Cookies.remove("Authorization");
+});
 </script>

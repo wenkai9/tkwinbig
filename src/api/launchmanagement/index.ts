@@ -154,6 +154,24 @@ export function ApiInvitationCreator(data) {
     data
   });
 }
+// 查看秘钥 get_db_key
+export function ApigetQtossKey(data) {
+  return service.request({
+    url: `/user/get_db_key`,
+    method: "post",
+    data
+  });
+}
+
+
+//获取秘钥
+export function ApigetQtossUser(data) {
+  return service.request({
+    url: `/user/get_rpa_key`,
+    method: "post",
+    data
+  });
+}
 
 
 // 新增建联
@@ -181,9 +199,9 @@ export function ApiGetRpaTasks(taskId: String) {
   });
 }
 // 查看达人
-export function ApiGetTaskCreator(taskId: String) {
+export function ApiGetTaskCreator(taskId: String, page: Number, size: Number) {
   return service.request({
-    url: `/user/get_task_creator/${taskId}`,
+    url: `/user/get_task_creator/${taskId}?page=${page}&size=${size}`,
     method: "get",
 
   });

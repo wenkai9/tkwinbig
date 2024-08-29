@@ -1,6 +1,7 @@
 
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
+import router from "@/router";
 // 创建axios实例
 const service = axios.create({
   // baseURL: process.env.VUE_APP_BASE_API, 
@@ -46,6 +47,14 @@ service.interceptors.response.use((res) => {
 },
   error => {
     console.log('err' + error);
+    if (error.response.data.code == 401) {
+      router.push({ name: "sign-in" });
+      return ElMessage({
+        message: error.response.data.errmsg,
+        type: 'error',
+        duration: 5 * 1000
+      });
+    }
     ElMessage({
       message: error.message,
       type: 'error',
