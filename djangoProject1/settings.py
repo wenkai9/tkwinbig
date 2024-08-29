@@ -13,14 +13,14 @@ import os
 from pathlib import Path
 from mongoengine import connect
 
-connect(
-    db='tk',
-    username='root',
-    password='tkwinbig@321',
-    host='dds-bp101612bc0289d41.mongodb.rds.aliyuncs.com',
-    port=3717,
-    authentication_source='tk'
-)
+# connect(
+#     db='tk',
+#     username='root',
+#     password='tkwinbig@321',
+#     host='dds-bp101612bc0289d41.mongodb.rds.aliyuncs.com',
+#     port=3717,
+#     authentication_source='tk'
+# )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -128,10 +128,10 @@ DATABASES = {
 MONGODB_DATABASES = {
     'default': {
         'NAME': 'tk',
-        'HOST': 'localhost',
-        'PORT': 27017,
-        'USERNAME': '',  # 如果需要认证，填写 MongoDB 用户名
-        'PASSWORD': '',  # 如果需要认证，填写 MongoDB 密码
+        'HOST': 'dds-bp101612bc0289d41412-pub.mongodb.rds.aliyuncs.com',
+        'PORT': 3717,
+        'USERNAME': 'root',  # 如果需要认证，填写 MongoDB 用户名
+        'PASSWORD': 'tkwinbig@2024',  # 如果需要认证，填写 MongoDB 密码
     }
 }
 
