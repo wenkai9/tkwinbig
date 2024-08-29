@@ -1,10 +1,8 @@
-import traceback
 from datetime import datetime, timedelta
+from django.http import JsonResponse
 import jwt
 from django.conf import settings
-from django.http import JsonResponse
-from .views import generate_jwt
-
+from app.users.views import generate_jwt
 
 
 class JWTMiddleware:
@@ -19,14 +17,20 @@ class JWTMiddleware:
             try:
                 payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
                 expiration_time = datetime.utcfromtimestamp(payload['exp'])
+
+                # 检查Token是否在6小时内即将过期
                 if expiration_time - datetime.utcnow() < timedelta(hours=6):
                     new_token = generate_jwt(payload['user_id'])
                     response.set_cookie('Authorization', new_token)
             except jwt.ExpiredSignatureError:
-                response.delete_cookie('Authorization')
-                return JsonResponse({'code': 400, 'errmsg': 'Token已过期'}, status=400)
+                # 当 Authorization Token 过期时，清除所有 cookies
+                for cookie in request.COOKIES:
+                    response.delete_cookie(cookie)
+                return JsonResponse({'code': 401, 'errmsg': 'Token已过期,请重新登录'}, status=400)
             except jwt.InvalidTokenError:
-                response.delete_cookie('Authorization')
-                return JsonResponse({'code': 400, 'errmsg': '无效的Token'}, status=400)
+                # 当Token无效时，清除所有 cookies
+                for cookie in request.COOKIES:
+                    response.delete_cookie(cookie)
+                return JsonResponse({'code': 401, 'errmsg': '无效的Token,请重新登录'}, status=400)
 
         return response
