@@ -163,7 +163,7 @@ def user_profile(request):
         # 从请求头中获取 JWT
         token = request.COOKIES.get('Authorization')
         if not token:
-            return JsonResponse({'code': 400, 'errmsg': '未提供有效的身份认证,请重新登录'})
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
 
         try:
             # 解码 JWT
@@ -180,10 +180,10 @@ def user_profile(request):
             return JsonResponse({'code': 200, 'data': user_info})
         except jwt.ExpiredSignatureError:
             traceback.print_exc()
-            return JsonResponse({'code': 400, 'errmsg': 'Token已过期'})
+            return JsonResponse({'code': 401, 'errmsg': 'Token已过期'})
         except jwt.InvalidTokenError:
             traceback.print_exc()
-            return JsonResponse({'code': 400, 'errmsg': '无效的Token'})
+            return JsonResponse({'code': 401, 'errmsg': '无效的Token'})
         except User.DoesNotExist:
             traceback.print_exc()
             return JsonResponse({'code': 400, 'errmsg': '用户不存在。'})
@@ -200,7 +200,7 @@ def change_password(request):
         # 从请求头中获取 JWT
         token = request.COOKIES.get('Authorization')
         if not token:
-            return JsonResponse({'code': 400, 'errmsg': '未提供有效的身份认证'})
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证'})
 
         try:
             # 解码 JWT
@@ -238,10 +238,10 @@ def change_password(request):
 
             return JsonResponse({'code': 200, 'msg': '密码修改成功'})
         except jwt.ExpiredSignatureError:
-            return JsonResponse({'code': 400, 'errmsg': 'Token已过期'})
+            return JsonResponse({'code': 401, 'errmsg': 'Token已过期'})
         except jwt.InvalidTokenError:
             traceback.print_exc()
-            return JsonResponse({'code': 400, 'errmsg': '无效的Token'})
+            return JsonResponse({'code': 401, 'errmsg': '无效的Token'})
         except User.DoesNotExist:
             return JsonResponse({'code': 400, 'errmsg': '用户不存在。'})
         except Exception as e:

@@ -46,7 +46,7 @@ def list_shops(request, page=None):
     try:
         token = request.COOKIES.get('Authorization')
         if not token:
-            return JsonResponse({'code': 400, 'errmsg': '未提供有效的身份认证,请重新登录'})
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
         all_shops = Shop.objects.all().order_by('shopId')
 
         size = int(request.GET.get('size', 10))
