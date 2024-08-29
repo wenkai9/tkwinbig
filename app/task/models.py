@@ -144,6 +144,20 @@ class Tk_chat(models.Model):
         db_table = 'tk_chat'
 
 
+class Rpa_key(models.Model):
+    username = models.CharField(max_length=20)
+    password = models.CharField(max_length=20)
+    key = models.CharField(max_length=50)
+    has_requested = models.BooleanField(default=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.username)
+
+    class Meta:
+        db_table = 'rpa_key'
+
+
 from mongoengine import Document, EmbeddedDocument, fields
 
 
@@ -182,6 +196,7 @@ class Tk_seller_dialog(Document):
     Content = fields.EmbeddedDocumentField(Content)
     UpdateAt = fields.DateTimeField(required=True)
 
+
 # 达人邀约信息
 class Image(EmbeddedDocument):
     thumb_url_list = fields.ListField(fields.URLField())
@@ -211,6 +226,7 @@ class Creator(EmbeddedDocument):
     product_add_cnt = fields.IntField(required=True)
     content_posted_cnt = fields.IntField(required=True)
     base_info = fields.EmbeddedDocumentField(BaseInfo)
+    agreement = fields.IntField(default=0)
 
 
 class Tk_Invitation(Document):
