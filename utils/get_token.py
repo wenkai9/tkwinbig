@@ -1,10 +1,16 @@
 import base64
 import requests
 
+'''
+target_commission
+open_commission
+effective_status
+'''
 
-def get_token(username, password):
+
+def get_token():
     try:
-        your_string = f"{username}:{password}"
+        your_string = "song:306012"
         b = base64.b64encode(your_string.encode('utf-8'))
         url = "https://qtoss-connect.azurewebsites.net/token"
         base64_str = b.decode('utf-8')
@@ -14,7 +20,8 @@ def get_token(username, password):
         data = response.json()
         access_token = data['access_token']
         if response.status_code == 200:
-            return base64_str, access_token
+            # print(access_token)
+            return access_token
         else:
             return None
     except Exception as e:
@@ -22,4 +29,9 @@ def get_token(username, password):
         return None
 
 
-aa = get_token("song", "306012")
+def get_rpa_key(username, password):
+    try:
+        return base64.b64encode(f"{username}:{password}".encode('utf-8')).decode('utf-8')
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
