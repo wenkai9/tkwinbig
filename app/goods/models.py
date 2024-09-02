@@ -45,7 +45,7 @@ class Goods(models.Model):
         (False, '未建联'),
         (True, '已经建联'),
     )
-    id = models.CharField(max_length=255, primary_key=True)
+    product_id = models.CharField(max_length=255, primary_key=True)
     title = models.CharField(max_length=100)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
