@@ -100,28 +100,28 @@ WSGI_APPLICATION = 'djangoProject1.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    "default": {
-        'ENGINE': 'django.db.backends.mysql',
-        "NAME": "tkwinbig",
-        "USER": "root",
-        "PASSWORD": "123456",
-        "HOST": "localhost",
-        "PORT": 3306,
-        "OPTIONS": {'charset': 'utf8mb4'}
-    }
-}
-
 # DATABASES = {
 #     "default": {
 #         'ENGINE': 'django.db.backends.mysql',
-#         "NAME": "tk-ai",
-#         "USER": "tkwinbig3",
-#         "PASSWORD": "306012swj=",
-#         "HOST": "tkwinbig.mysql.polardb.rds.aliyuncs.com",
+#         "NAME": "tkwinbig",
+#         "USER": "root",
+#         "PASSWORD": "123456",
+#         "HOST": "localhost",
 #         "PORT": 3306,
+#         "OPTIONS": {'charset': 'utf8mb4'}
 #     }
 # }
+
+DATABASES = {
+    "default": {
+        'ENGINE': 'django.db.backends.mysql',
+        "NAME": "tk-ai",
+        "USER": "tkwinbig3",
+        "PASSWORD": "306012swj=",
+        "HOST": "tkwinbig.mysql.polardb.rds.aliyuncs.com",
+        "PORT": 3306,
+    }
+}
 
 
 # 配置 MongoDB
