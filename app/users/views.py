@@ -148,7 +148,6 @@ def user_login(request):
 
                 return response
             else:
-                print('-----------------------1')
                 return JsonResponse({'code': 400, 'errmsg': '用户名或密码错误。'})
         except User.DoesNotExist:
             return JsonResponse({'code': 400, 'errmsg': '用户不存在。'})
