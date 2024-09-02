@@ -37,7 +37,6 @@
         </el-form-item>
         <el-form-item label="商品ID:">
           <el-input
-            readonly
             v-model.trim="formData.id"
             placeholder="请输入商品商品ID"
             clearable
