@@ -17,6 +17,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from utils.get_token import get_token
+from utils.updata_task import update_task
+from utils.get_rpa_creator import get_rpa_creator
 import jwt
 from django.conf import settings
 
@@ -41,7 +43,7 @@ def create_task(request):
                 product_id=data.get('productId'),
                 user_id=data.get('userId'),
                 shop_id=data.get('shopId'),
-                region=f"{data['p_name']}-{data['c_name']}-{data['r_name']}",
+                region=f"{data['p_name']}{data['c_name']}{data['r_name']}",
                 status='1',
                 match_quantity=0,
                 willing_quantity=0,
@@ -51,11 +53,11 @@ def create_task(request):
             )
 
             # 调用retrieval接口
-            retrieval_url = "http://120.27.208.224:8002/retrival"
+            retrieval_url = "http://120.27.208.224:8003/retrival"
             params = {
                 "task_id": task.taskId,
                 "shop_id": data.get('shopId'),
-                "products": Goods.objects.get(id=data.get('productId')).match_tag
+                "products": Goods.objects.get(product_id=data.get('productId')).match_tag
             }
             response = requests.post(retrieval_url, json=params)
 
@@ -113,7 +115,7 @@ def list_tasks(request, task_id=None):
                     serialized_task = {
                         'taskId': task.taskId,
                         'name': task.name,
-                        'product_title': Goods.objects.get(id=task.product_id).title,
+                        'product_title': Goods.objects.get(product_id=task.product_id).title,
                         'status': {"1": "未启动", "2": "正在进行", "3": "已完成"}[task.status],
                         'shop_id': task.shop_id,
                         'shop_name': task.shop.shop_name,
@@ -151,7 +153,7 @@ def list_tasks(request, task_id=None):
                     serialized_task = {
                         'taskId': task.taskId,
                         'name': task.name,
-                        'product_title': Goods.objects.get(id=task.product_id).title,
+                        'product_title': Goods.objects.get(product_id=task.product_id).title,
                         'status': {"1": "未启动", "2": "正在进行", "3": "已完成"}[task.status],
                         'shop_id': task.shop_id,
                         'shop_name': task.shop.shop_name,
@@ -420,20 +422,33 @@ def get_db_key(request):
     if request.method == 'POST':
         try:
             token = request.COOKIES.get('Authorization')
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
             if not token:
-                return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+                return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'}, status=401)
+
+            try:
+                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            except jwt.ExpiredSignatureError:
+                return JsonResponse({'code': 401, 'errmsg': 'token已过期'}, status=401)
+            except jwt.InvalidTokenError:
+                return JsonResponse({'code': 401, 'errmsg': '无效的token'}, status=401)
+
             user_id = payload['user_id']
-            key = Rpa_key.objects.get(user_id=user_id).key
-            has_requested = Rpa_key.objects.get(user_id=user_id).has_requested
+
+            try:
+                rpa_key = Rpa_key.objects.get(user_id=user_id)
+            except Rpa_key.DoesNotExist:
+                return JsonResponse({"code": 404, "errmsg": "未找到用户的数据库密钥,请先获取RPA客户端秘钥"}, status=404)
+
             data = {
-                "key": key,
-                "has_requested": has_requested
+                "key": rpa_key.key,
+                "has_requested": rpa_key.has_requested
             }
-            if key:
+
+            if rpa_key.key:
                 return JsonResponse({"code": 200, "data": data}, status=200)
             else:
                 return JsonResponse({"code": 404, "errmsg": "未找到用户的数据库密钥"}, status=404)
+
         except Exception as e:
             return JsonResponse({"code": 500, "errmsg": f"服务器内部错误: {str(e)}"}, status=500)
     else:
@@ -455,7 +470,14 @@ def get_creator_ids(task_id, start_index, batch_size):
 @csrf_exempt
 def tk_invitation(request):
     if request.method == 'POST':
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
         try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            username = Rpa_key.objects.get(user_id=user_id).username
+            password = Rpa_key.objects.get(user_id=user_id).password
             data = json.loads(request.body)
             task_id = data.get('taskId')
 
@@ -465,19 +487,17 @@ def tk_invitation(request):
             # 获取任务信息
             task = Task.objects.get(taskId=task_id)
             user = User.objects.get(user_id=task.user_id)
-            products = Goods.objects.filter(id=task.product_id).first()
+            products = Goods.objects.filter(product_id=task.product_id).first()
             product_id = task.product_id
-            product = Goods.objects.get(id=product_id)
+            product = Goods.objects.get(product_id=product_id)
             rule_id = product.raidsysrule_id
             rule = RaidsysRule.objects.get(id=rule_id)
             requirement = rule.requirement
-            region = task.region
             shop_id = task.shop_id
 
             if not products:
                 return JsonResponse({"code": 404, "errmsg": f"找不到与 taskId {task_id} 相关的商品信息。"})
 
-            # 设置分页参数
             start_index = 0
             batch_size = 50
             total_tasks_sent = 0
@@ -495,7 +515,7 @@ def tk_invitation(request):
 
                 data_to_send = {
                     "type": 2,
-                    "region": region,
+                    "region": "US",
                     "refTaskId": refTaskId,
                     "content": {
                         "shopId": shop_id,
@@ -522,7 +542,7 @@ def tk_invitation(request):
                 }
 
                 url = 'https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/creator-invitation'
-                access_token = get_token()
+                access_token = get_token(username, password)
                 token = 'Bearer ' + access_token
                 headers = {'Content-Type': 'application/json', 'Authorization': token}
                 response = requests.post(url=url, headers=headers, json=data_to_send)
@@ -581,14 +601,44 @@ def tk_invitation(request):
 @csrf_exempt
 def get_invitation(request, taskId):
     if request.method == 'GET':
-        access_token = get_token()
-        token = 'Bearer ' + access_token
-        headers = {'Content-Type': 'application/json', 'Authorization': token}
-        url = f"https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/creator-invitation/{taskId}"
-        response = requests.get(url=url, headers=headers)
-        print(response.status_code)
-        if response.status_code == 200:
-            data = response.json()
+        try:
+            token = request.COOKIES.get('Authorization')
+            if not token:
+                return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            username = Rpa_key.objects.get(user_id=user_id).username
+            password = Rpa_key.objects.get(user_id=user_id).password
+            access_token = get_token(username, password)
+            token = 'Bearer ' + access_token
+            headers = {'Content-Type': 'application/json', 'Authorization': token}
+            url = f"https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/creator-invitation/{taskId}"
+            response = requests.get(url=url, headers=headers)
+            print(response.status_code)
+            if response.status_code == 200:
+                data = response.json()
+                invitation_msg = Tk_invacation.objects.update(
+                    userId=user_id,
+                    taskId=data.get('taskId'),
+                    delivery_id=taskId,
+                    type=data.get('type'),
+                    region=data.get('region'),
+                    refTaskid=data.get('refTaskId'),
+                    status=data.get('status'),
+                    receivestatus=data.get('receivestatus'),
+                    message=data.get('message'),
+                    createAt=data.get('createdAt'),
+                    complateAt=data.get('complatedAt'),
+                )
+                invitation_msg.save()
+                return JsonResponse(data, status=200)
+            else:
+                return JsonResponse({"code": response.status_code, "errmsg": "获取邀请信息失败"},
+                                    status=response.status_code)
+        except Exception as e:
+            return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
+    else:
+        return JsonResponse({"code": 405, "errmsg": "请求方法不支持"}, status=405)
 
 
 '''
@@ -600,7 +650,14 @@ def get_invitation(request, taskId):
 def get_invitation_detail(request, taskId):
     if request.method == 'GET':
         try:
-            access_token = get_token()
+            token = request.COOKIES.get('Authorization')
+            if not token:
+                return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            username = Rpa_key.objects.get(user_id=user_id).username
+            password = Rpa_key.objects.get(user_id=user_id).password
+            access_token = get_token(username, password)
             token = 'Bearer ' + access_token
             headers = {'Content-Type': 'application/json', 'Authorization': token}
             url = f"https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/creator-invitation/{taskId}/detail"
@@ -675,76 +732,34 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 @csrf_exempt
 def get_task_creator(request, taskId):
     if request.method == 'GET':
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+
+        # 解析 JWT token
         try:
-            invitation = Tk_Invitation.objects(id=taskId).first()
-            if not invitation:
-                return JsonResponse({"code": 404, "errmsg": "任务未找到"})
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({'code': 401, 'errmsg': 'Token 已过期'})
+        except jwt.DecodeError:
+            return JsonResponse({'code': 401, 'errmsg': '无效的 Token'})
 
-            creators = invitation.creator_id_list
+        # 获取用户认证信息
+        user_id = payload['user_id']
+        try:
+            user = Rpa_key.objects.get(user_id=user_id)
+            username = user.username
+            password = user.password
+            print(username, password)
+        except Rpa_key.DoesNotExist:
+            return JsonResponse({'code': 404, 'errmsg': '用户认证信息未找到'})
 
-            size = int(request.GET.get('size', 10))
-            paginator = Paginator(creators, size)
-            page_number = request.GET.get('page', 1)
-
-            try:
-                creators_page = paginator.page(page_number)
-            except PageNotAnInteger:
-                creators_page = paginator.page(1)
-            except EmptyPage:
-                creators_page = paginator.page(paginator.num_pages)
-
-            creators_data = [
-                {
-                    "creator_id": creator.base_info.creator_id,
-                    "nick_name": creator.base_info.nick_name,
-                    "user_name": creator.base_info.user_name,
-                    "selection_region": creator.base_info.selection_region,
-                    "product_add_cnt": creator.product_add_cnt,
-                    "content_posted_cnt": creator.content_posted_cnt
-                }
-                for creator in creators_page
-            ]
-
-            return JsonResponse({
-                "code": 200,
-                "creators": creators_data,
-                "page": creators_page.number,
-                "total_pages": paginator.num_pages,
-                "total_creators": paginator.count
-            }, status=200)
-
-        except Exception as e:
-            return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
+        page = int(request.GET.get('page', 1))
+        size = int(request.GET.get('size', 10))
+        data = get_rpa_creator(taskId, username, password, page, size)
+        return JsonResponse(data, safe=False, status=200)
     else:
         return JsonResponse({"code": 405, "errmsg": "请求方法不支持"}, status=405)
-
-
-# @csrf_exempt
-# def get_task_creator(request, taskId):
-#     if request.method == 'GET':
-#         try:
-#             invitation = Tk_Invitation.objects(id=taskId).first()
-#             if not invitation:
-#                 return JsonResponse({"code": 404, "errmsg": "任务未找到"})
-#
-#             creators = invitation.creator_id_list
-#
-#             creators_data = [
-#                 {
-#                     "creator_id": creator.base_info.creator_id,
-#                     "nick_name": creator.base_info.nick_name,
-#                     "user_name": creator.base_info.user_name,
-#                     "selection_region": creator.base_info.selection_region,
-#                     "product_add_cnt": creator.product_add_cnt,
-#                     "content_posted_cnt": creator.content_posted_cnt
-#                 }
-#                 for creator in creators
-#             ]
-#             return JsonResponse({"code": 200, "creators": creators_data}, status=200)
-#         except Exception as e:
-#             return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
-#     else:
-#         return JsonResponse({"code": 405, "errmsg": "请求方法不支持"}, status=405)
 
 
 '''
@@ -756,11 +771,16 @@ def get_task_creator(request, taskId):
 def seller_im(request, taskId):
     if request.method == 'POST':
         try:
+            token = request.COOKIES.get('Authorization')
+            if not token:
+                return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            username = Rpa_key.objects.get(user_id=user_id).username
+            password = Rpa_key.objects.get(user_id=user_id).password
             task = Task.objects.get(taskId=taskId)
-            print(task)
             shop_id = task.shop_id
-            username = Creators.objects.filter(taskId=task).values_list("product", flat=True).first()
-            print(username)
+            creator_username = Creators.objects.filter(taskId=task).values_list("product", flat=True).first()
             refTaskId = ''.join(random.choices(string.digits, k=9))  # 生成随机的refTaskId
             data = {
                 "type": 3,
@@ -768,12 +788,12 @@ def seller_im(request, taskId):
                 "refTaskId": refTaskId,
                 "content": {
                     "shopId": shop_id,
-                    "UserName": username,
+                    "UserName": creator_username,
                     "text": "Hi, dear! We have been following your amazing content and believe that your unique style and creativity would be a perfect fit for our brand! We are here to invite you to try and test our yoga ball. If you have any interest, please let us know, so that we can discuss more details. Thank you so much!"
                 }
             }
             print(json.dumps(data))
-            access_token = get_token()
+            access_token = get_token(username, password)
             token = 'Bearer ' + access_token
             headers = {'Content-Type': 'application/json', 'Authorization': token}
             url = "https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/seller-im"
@@ -899,7 +919,14 @@ def get_im(request, taskId):
 @csrf_exempt
 def get_im_info(request, taskId):
     try:
-        access_token = get_token()
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        user_id = payload['user_id']
+        username = Rpa_key.objects.get(user_id=user_id).username
+        password = Rpa_key.objects.get(user_id=user_id).password
+        access_token = get_token(username, password)
         token = 'Bearer ' + access_token
         headers = {'Content-Type': 'application/json', 'Authorization': token}
         url = f"https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/seller-im/{taskId}/detail"
@@ -922,7 +949,14 @@ def get_im_info(request, taskId):
 @csrf_exempt
 def seller_im_msg(request, taskId):
     try:
-        access_token = get_token()
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        user_id = payload['user_id']
+        username = Rpa_key.objects.get(user_id=user_id).username
+        password = Rpa_key.objects.get(user_id=user_id).password
+        access_token = get_token(username, password)
         token = 'Bearer ' + access_token
         headers = {'Content-Type': 'application/json', 'Authorization': token}
         url = f"https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/seller-im/{taskId}/receive"
@@ -940,25 +974,93 @@ def seller_im_msg(request, taskId):
 '''
 获取投放任务下的rpa任务
 '''
-from django.forms.models import model_to_dict
 
 
 @csrf_exempt
 def get_rpa_tasks(request, taskId):
     try:
-        tasks = Tk_invacation.objects.filter(delivery_id=taskId)
-        if not tasks:
-            return JsonResponse({"code": 204, "errmsg": "未找到任务"})
-        tasks_data = [model_to_dict(task) for task in tasks]
+        # 获取 token
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
 
-        return JsonResponse({"code": 200, "data": tasks_data}, status=200)
+        # 解析 JWT token
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({'code': 401, 'errmsg': 'Token 已过期'})
+        except jwt.DecodeError:
+            return JsonResponse({'code': 401, 'errmsg': '无效的 Token'})
+
+        # 获取用户认证信息
+        user_id = payload['user_id']
+        try:
+            user = Rpa_key.objects.get(user_id=user_id)
+            username = user.username
+            password = user.password
+        except Rpa_key.DoesNotExist:
+            return JsonResponse({'code': 404, 'errmsg': '用户认证信息未找到'})
+
+        # 查询任务
+        tasks = Tk_invacation.objects.filter(delivery_id=taskId)
+        if not tasks.exists():
+            return JsonResponse({"code": 204, "errmsg": "未找到任务"})
+
+        data = update_task(taskId, username, password)
+        return JsonResponse(data, safe=False, status=200)
 
     except Exception as e:
+        import traceback
+        print("Exception:", str(e))
+        print("Traceback:", traceback.format_exc())
         return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
 
 
+# @csrf_exempt
+# def get_rpa_tasks(request, taskId):
+#     try:
+#         token = request.COOKIES.get('Authorization')
+#         tasks = Tk_invacation.objects.filter(delivery_id=taskId)
+#         if not token:
+#             return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+#         if not tasks:
+#             return JsonResponse({"code": 204, "errmsg": "未找到任务"})
+#         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+#         user_id = payload['user_id']
+#         username = Rpa_key.objects.get(user_id=user_id).username
+#         password = Rpa_key.objects.get(user_id=user_id).password
+#         # username = "song"
+#         # password = "306012"
+#         print(taskId, username, password)
+#         data = update_task(taskId, username, password)
+#         return data
+#
+#     except Exception as e:
+#         return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
+
+
 '''
-在邀约前先过滤下达人
+获取投放任务下的rpa任务
+'''
+# from django.forms.models import model_to_dict
+#
+#
+# @csrf_exempt
+# def get_rpa_tasks(request, taskId):
+#     try:
+#         tasks = Tk_invacation.objects.filter(delivery_id=taskId)
+#         if not tasks:
+#             return JsonResponse({"code": 204, "errmsg": "未找到任务"})
+#         tasks_data = [model_to_dict(task) for task in tasks]
+#
+#         return JsonResponse({"code": 200, "data": tasks_data}, status=200)
+#
+#     except Exception as e:
+#         return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
+
+
+'''
+在邀约前先过滤下达人是否存在
 '''
 
 
@@ -966,14 +1068,21 @@ def get_rpa_tasks(request, taskId):
 def filter_creator(request, taskId):
     if request.method == 'GET':
         try:
+            token = request.COOKIES.get('Authorization')
+            if not token:
+                return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            username = Rpa_key.objects.get(user_id=user_id).username
+            password = Rpa_key.objects.get(user_id=user_id).password
             tasks = Creators.objects.filter(taskId=taskId).values_list("product", flat=True)[0:10]
             for task in tasks:
                 params = {
                     "keywords": task
                 }
-                access_token = get_token()
-                token = 'Bearer ' + access_token
-                headers = {'Content-Type': 'application/json', 'Authorization': token}
+                access_token = get_token(username, password)
+                authorization = 'Bearer ' + access_token
+                headers = {'Content-Type': 'application/json', 'Authorization': authorization}
                 url = f"https://qtoss-crawling-proxy.azurewebsites.net/qtoss-crawling-proxy/tiktok/affiliate-center/creator/search/suggestion"
                 response = requests.get(url=url, headers=headers, params=params)
                 response.raise_for_status()
