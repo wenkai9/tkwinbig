@@ -37,7 +37,7 @@
         </el-form-item>
         <el-form-item label="商品ID:">
           <el-input
-            v-model.trim="formData.id"
+            v-model.trim="formData.product_id"
             placeholder="请输入商品商品ID"
             clearable
           />
@@ -124,7 +124,7 @@ const formData = ref({
   description: "",
   price: "",
   product_link: "",
-  id: "",
+  product_id: "",
   hasFreeSample: false,
   commissionRate: "",
   CooperationFee: "",
@@ -176,6 +176,7 @@ const handleSubmit = () => {
     { key: "description", message: "请输入商品简介" },
     { key: "price", message: "请输入商品价格" },
     { key: "product_link", message: "请输入商品链接" },
+    { key: "product_id", message: "请输入商品ID" },
     { key: "hasFreeSample", message: "请选中是否免费寄样品" },
     { key: "commissionRate", message: "请输入佣金率" },
     { key: "CooperationFee", message: "请输入合作费" },
@@ -202,7 +203,7 @@ const handleSubmit = () => {
   }
   loading.value = true;
   formData.value.hasFreeSample = false ? 0 : 1;
-  formData.value.id = generateRandomFiveDigitNumber(formData.value.id);
+  // formData.value.id = generateRandomFiveDigitNumber(formData.value.id);
   ApiAddProducts(formData.value)
     .then((res) => {
       let resJson = res;
