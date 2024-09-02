@@ -14,24 +14,28 @@ from app.task.models import Task, Tk_invacation, Creators
 from app.goods.models import Goods, RaidsysRule
 from app.users.models import User
 
-token = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiI1ZDVkMGU4MS1lNGE2LTQ3Y2QtYjAyNy03ZWU2ZTE2ZjRmYmMiLCJ1bmlxdWVfbmFtZSI6InNvbmciLCJlbWFpbCI6IjIxODEyNTE4NDNAcXEuY29tIiwiZ2l2ZW5fbmFtZSI6InNvbmciLCJmYW1pbHlfbmFtZSI6IiIsInNvdXJjZSI6ImludGVybmFsIiwiZXh0ZXJuYWxfaWQiOiIiLCJqdGkiOiI1MzlhYTU2ZC04MjUwLTQ3ZTQtYThmMy1hMGY1YjE5MGFlMjUiLCJwaG9uZSI6IiIsIm5iZiI6MTcyMzQzMTc3NSwiZXhwIjoxNzIzNDM4OTc1LCJpYXQiOjE3MjM0MzE3NzUsImlzcyI6ImJvdHNoYXJwIiwiYXVkIjoiYm90c2hhcnAifQ.BEIJ0rh4WU2Jb2JcjmFtWFKKav6M_2HzRBsMNUGsW58")
-token = 'Bearer ' + token
-headers = {'Content-Type': 'application/json', 'Authorization': token}
-taskId = "65sd4156"
 
-task = Creators.objects.filter(taskId=taskId).values_list("product", flat=True)[0:10]
-print(task)
 
-task = Task.objects.get(taskId=taskId)
-user = User.objects.get(user_id=task.user_id)
-products = Goods.objects.filter(id=task.product_id).first()
-product_id = task.product_id
-product = Goods.objects.get(id=product_id)
-rule_id = product.raidsysrule_id
-rule = RaidsysRule.objects.get(id=rule_id)
-requirement = rule.requirement
-print(requirement)
+
+
+# token = (
+#     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiI1ZDVkMGU4MS1lNGE2LTQ3Y2QtYjAyNy03ZWU2ZTE2ZjRmYmMiLCJ1bmlxdWVfbmFtZSI6InNvbmciLCJlbWFpbCI6IjIxODEyNTE4NDNAcXEuY29tIiwiZ2l2ZW5fbmFtZSI6InNvbmciLCJmYW1pbHlfbmFtZSI6IiIsInNvdXJjZSI6ImludGVybmFsIiwiZXh0ZXJuYWxfaWQiOiIiLCJqdGkiOiI1MzlhYTU2ZC04MjUwLTQ3ZTQtYThmMy1hMGY1YjE5MGFlMjUiLCJwaG9uZSI6IiIsIm5iZiI6MTcyMzQzMTc3NSwiZXhwIjoxNzIzNDM4OTc1LCJpYXQiOjE3MjM0MzE3NzUsImlzcyI6ImJvdHNoYXJwIiwiYXVkIjoiYm90c2hhcnAifQ.BEIJ0rh4WU2Jb2JcjmFtWFKKav6M_2HzRBsMNUGsW58")
+# token = 'Bearer ' + token
+# headers = {'Content-Type': 'application/json', 'Authorization': token}
+# taskId = "65sd4156"
+#
+# task = Creators.objects.filter(taskId=taskId).values_list("product", flat=True)[0:10]
+# print(task)
+#
+# task = Task.objects.get(taskId=taskId)
+# user = User.objects.get(user_id=task.user_id)
+# products = Goods.objects.filter(id=task.product_id).first()
+# product_id = task.product_id
+# product = Goods.objects.get(id=product_id)
+# rule_id = product.raidsysrule_id
+# rule = RaidsysRule.objects.get(id=rule_id)
+# requirement = rule.requirement
+# print(requirement)
 
 
 # try:
@@ -109,25 +113,3 @@ print(requirement)
 # df.to_excel("output.xlsx", index=False, engine='openpyxl')
 #
 # print("数据已成功写入 output.xlsx 文件")
-'''
-honeyconehideout
-["ash_bash28"
-"kenjahb"
-"placenta_6"
-"dre_da_dancer"
-"thecraftygrrl"
-"realnikocado"
-"christianmamamary"
-"twtttl"
-"coolwhitaker"
-"mialorenclark"
-"its.maple"
-"woodsie.tv"
-"sharkbait_kitty"
-"gagedancin"
-"tow_ninja68"
-"deathenjoyer420"
-"mikey_rothgeb"
-"powerthighcarol"
-"just_marina6"]
-'''
