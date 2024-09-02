@@ -23,13 +23,14 @@ def add_product(request, page=None):
                 Shop.objects.get(shopId=data['shopId'])
             except ObjectDoesNotExist:
                 return JsonResponse({"code": 400, 'errmsg': '无效的店铺 ID'}, status=400)
-            try:
-                base_category = base_category2.objects.get(pk=data['base_category2_id'])
-            except ObjectDoesNotExist:
-                return JsonResponse({"code": 400, 'errmsg': '无效的二级分类 ID'}, status=400)
-            match_tag = f"{data['title']}_{base_category.name}"
+            # try:
+            #     base_category = base_category2.objects.get(pk=data['base_category2_id'])
+            # except ObjectDoesNotExist:
+            #     return JsonResponse({"code": 400, 'errmsg': '无效的二级分类 ID'}, status=400)
+            # match_tag = f"{data['title']}_{base_category.name}"
+            match_tag = f"{data['title']}"
             product = Goods.objects.create(
-                id=data['id'],
+                product_id=data['product_id'],
                 title=data['title'],
                 description=data['description'],
                 price=data['price'],
@@ -44,7 +45,7 @@ def add_product(request, page=None):
 
             )
             data = {
-                "product_id": product.id,
+                "product_id": product.product_id,
                 "title": product.title,
                 "description": product.description,
                 "price": str(product.price),
@@ -100,7 +101,7 @@ def list_products(request, page=None):
             return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
         try:
             size = int(request.GET.get('size', 10))  # 如果未提供，默认为 10
-            all_products = Goods.objects.all().order_by('id')
+            all_products = Goods.objects.all().order_by('product_id')
             paginator = Paginator(all_products, size)
             page_number = request.GET.get('page')
             try:
@@ -123,7 +124,7 @@ def list_products(request, page=None):
                 product.rule_name = rule_name
 
             serialized_products = [{
-                "product_id": product.id,
+                "product_id": product.product_id,
                 "title": product.title,
                 "description": product.description,
                 "price": str(product.price),
@@ -159,7 +160,7 @@ def get_products(request, shop_id):
             data = []
             for product in products:
                 product_data = {
-                    "product_id": product.id,
+                    "product_id": product.product_id,
                     "title": product.title,
                     "description": product.description,
                     "price": str(product.price),
@@ -244,7 +245,7 @@ def update_product(request, product_id):
             raidsysrule = get_object_or_404(RaidsysRule, pk=raidsysrule_id)
 
             # 获取商品
-            product = Goods.objects.get(id=product_id)
+            product = Goods.objects.get(product_id=product_id)
 
             # 更新商品信息
             product.raidsysrule = raidsysrule  # 更新 raidsysrule_id
@@ -268,7 +269,7 @@ def update_product(request, product_id):
 def delete_product(request, product_id):
     if request.method == 'DELETE':
         try:
-            product = Goods.objects.get(id=product_id)
+            product = Goods.objects.get(product_id=product_id)
             product.delete()
             return JsonResponse({"code": 200, "msg": "删除成功"}, status=200)
         except Goods.DoesNotExist:
@@ -295,7 +296,7 @@ def upload_csv(request):
                 base_category = base_category2.objects.get(pk=row[6])
             except ObjectDoesNotExist:
                 return JsonResponse({"code": 400, 'errmsg': '无效的二级分类 ID'}, status=400)
-            match_tag = f"{row[0]}_{base_category.name}"
+            match_tag = f"{row[0]}{base_category.name}"
             product = {
                 "商品标签": row[0],
                 "商品描述": row[1],
@@ -404,7 +405,7 @@ def download_excel(request):
 
         # 将产品数据写入工作表
         for product in all_products:
-            ws.append([product.id, product.title, product.description, str(product.price),
+            ws.append([product.product_id, product.title, product.description, str(product.price),
                        product.hasFreeSample, product.commissionRate, product.CooperationFee,
                        product.base_category2_id,
                        product.product_link, product.shop_id, product.match_tag,
@@ -437,7 +438,7 @@ def list_category_products(request):
 
                 # 序列化商品信息
                 serialized_products = [{
-                    "id": product.id,
+                    "id": product.product_id,
                     "title": product.title,
                     "description": product.description,
                     "price": str(product.price),
@@ -455,7 +456,7 @@ def list_category_products(request):
 
             # 序列化商品信息
             serialized_products = [{
-                "id": product.id,
+                "id": product.product_id,
                 "title": product.title,
                 "description": product.description,
                 "price": str(product.price),
@@ -508,7 +509,7 @@ def list_products_all(request):
             if category_type == 'lv_1':
                 # 查询一级分类下的二级分类下的商品
                 secondary_categories = base_category2.objects.filter(category1_id=category_id)
-                data = Goods.objects.filter(base_category2__in=secondary_categories).values('id', 'title',
+                data = Goods.objects.filter(base_category2__in=secondary_categories).values('product_id', 'title',
                                                                                             'description', 'price',
                                                                                             'base_category2_id',
                                                                                             'product_link', 'match_tag',
@@ -517,14 +518,14 @@ def list_products_all(request):
                                                                                             'CooperationFee')
             elif category_type == 'lv_2':
                 # 查询二级分类下的商品
-                data = Goods.objects.filter(base_category2_id=category_id).values('id', 'title', 'description', 'price',
+                data = Goods.objects.filter(base_category2_id=category_id).values('product_id', 'title', 'description', 'price',
                                                                                   'base_category2_id',
                                                                                   'product_link', 'match_tag',
                                                                                   'hasFreeSample', 'commissionRate',
                                                                                   'CooperationFee')
             else:
                 # 如果没有提供类别类型，则返回所有商品
-                data = Goods.objects.all().values('id', 'title', 'description', 'price', 'base_category2_id',
+                data = Goods.objects.all().values('product_id', 'title', 'description', 'price', 'base_category2_id',
                                                   'product_link', 'match_tag', 'hasFreeSample', 'commissionRate',
                                                   'CooperationFee')
 
