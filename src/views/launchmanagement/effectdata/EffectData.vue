@@ -74,15 +74,6 @@
           width="180"
         />
 
-        <!-- <el-table-column
-          prop="send_quantity"
-          label="已发送邮件人数"
-          width="150"
-        >
-          <template #default="scope">
-            {{ scope.row.send_quantity || "/" }}
-          </template>
-        </el-table-column> -->
         <el-table-column prop="willing_quantity" label="邀约回复数" width="150">
           <template #default="scope">
             {{ scope.row.willing_quantity || "/" }}
@@ -125,6 +116,7 @@
     <div>
       <el-dialog width="50%" v-model="userDialog" title="合作用户信息">
         <el-table
+          v-loading="taskLoading"
           :data="modelRpaTasksData"
           :header-cell-style="{
             backgroundColor: '#f6f7fc',
@@ -141,14 +133,14 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="status" label="状态" width="150">
+          <el-table-column prop="status" label="状态" width="360">
             <template #default="scope">
               <div>
                 {{ modelStatusMap[scope.row.status] }}
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="message" label="消息" width="480" />
+          <el-table-column prop="region" label="国家/地区" />
           <el-table-column fixed="right" label="操作">
             <template #default="scope">
               <el-button
@@ -162,6 +154,13 @@
             </template>
           </el-table-column>
         </el-table>
+        <GlobalPage
+          :page="taskPageObj.page"
+          :pageSize="taskPageObj.size"
+          :total="taskPageObj.total"
+          @changePage="changeTaskPage"
+          @changeSize="changeTaskSize"
+        />
       </el-dialog>
     </div>
     <!-- 邀约达人 -->
@@ -211,6 +210,7 @@ import {
   ApiGetRpaTasks,
   ApiGetTaskCreator,
 } from "@/api/launchmanagement";
+import { ElMessage } from "element-plus";
 const router = useRouter();
 const modelTasksData = ref([]);
 const modelTypeMap = reactive({
@@ -235,9 +235,9 @@ const pageObj = reactive({
   total: 0,
 });
 const GetTasks = () => {
+  loading.value = true;
   ApiGetTasks(pageObj.page, pageObj.size)
     .then((res) => {
-      loading.value = true;
       console.log(res, "查询");
       if (res.code != 200) {
         return ElMessage({
@@ -267,19 +267,48 @@ const changeSize = (size: number) => {
 
 const userDialog = ref(false);
 const userObj = ref();
+const taskId = ref("");
 const handleJumpDetail = (row) => {
   userDialog.value = true;
   userObj.value = row.user;
+  taskId.value = row.taskId;
+  modelRpaTasksData.value = [];
+  taskPageObj.page = 1;
+  taskPageObj.size = 10;
+  taskPageObj.total = null;
   GetRpaTasks(row.taskId);
 };
 
+const taskPageObj = {
+  page: 1,
+  size: 10,
+  total: null,
+};
+const taskLoading = ref(false);
 // 查询投放任务
 let modelRpaTasksData = ref([]);
-const GetRpaTasks = (id: String) => {
-  ApiGetRpaTasks(id).then((res: any) => {
-    console.log(res, "任务列表");
-    modelRpaTasksData.value = res.data;
-  });
+const GetRpaTasks = () => {
+  taskLoading.value = true;
+  ApiGetRpaTasks(taskId.value, taskPageObj.page, taskPageObj.size)
+    .then((res: any) => {
+      console.log(res, "任务列表");
+      if (res.code !== 200) {
+        return;
+      }
+      modelRpaTasksData.value = res.data;
+      taskPageObj.total = res.total_tasks;
+    })
+    .finally(() => {
+      taskLoading.value = false;
+    });
+};
+const changeTaskPage = (page: number) => {
+  taskPageObj.page = page;
+  GetRpaTasks();
+};
+const changeTaskSize = (size: number) => {
+  taskPageObj.size = size;
+  GetRpaTasks();
 };
 // 查看达人
 let modelCreatorData = ref([]);

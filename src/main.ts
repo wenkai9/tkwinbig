@@ -21,12 +21,15 @@ import "@/core/plugins/prismjs";
 import GlobalPage from "./components/common/globalPage/index.vue";
 
 import dir from './utils/directive'
+import 'element-plus/dist/index.css'
+
 
 const app = createApp(App);
 
 app.use(createPinia());
 app.use(router);
 app.use(ElementPlus);
+
 app.component("GlobalPage", GlobalPage);
 ApiService.init(app);
 initApexCharts(app);

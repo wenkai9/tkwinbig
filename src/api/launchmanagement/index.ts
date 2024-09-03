@@ -10,7 +10,7 @@ export function ApiGetProducts(params: any, page: Number, size: Number) {
 
 export function ApiAddProducts(data: any, page: Number, size: Number) {
   return service.request({
-    url: `/user/add_products?page=${page}&size=${size}`,
+    url: data == '' ? `/user/add_products?page=${page}&size=${size}` : `/user/add_products`,
     // method: "post",
     method: data == '' ? 'get' : 'post',
     data,
@@ -191,9 +191,9 @@ export function ApiGetSummary() {
   });
 }
 // 查询投放任务
-export function ApiGetRpaTasks(taskId: String) {
+export function ApiGetRpaTasks(taskId: String, page: Number, size: Number) {
   return service.request({
-    url: `/user/get_rpa_tasks/${taskId}`,
+    url: `/user/get_rpa_tasks/${taskId}?page=${page}&size=${size}`,
     method: "get",
 
   });
