@@ -1,4 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from math import ceil
+
 from app.task.models import Tk_invacation
 from utils.get_token import get_token
 from django.core.cache import cache
@@ -6,7 +8,7 @@ import requests
 import datetime
 
 
-def update_task(taskId, username, password):
+def update_task(taskId, username, password, page=1, size=10):
     try:
         # 检查并获取缓存中的访问令牌
         cache_key = f'access_token_{username}'
@@ -69,7 +71,21 @@ def update_task(taskId, username, password):
                 except Exception as e:
                     print(f"获取或更新任务{taskid}时出错: {e}")
 
-        return {"code": 200, "data": results}
+        # 分页逻辑
+        total_tasks = len(results)
+        total_pages = ceil(total_tasks / size)
+        page = max(1, min(page, total_pages))  # 确保当前页在有效范围内
+        start = (page - 1) * size
+        end = start + size
+        paginated_results = results[start:end]
+
+        return {
+            "code": 200,
+            "data": paginated_results,
+            "page": page,
+            "total_pages": total_pages,
+            "total_tasks": total_tasks
+        }
 
     except Exception as e:
         import traceback
@@ -90,7 +106,6 @@ def fetch_task_data(taskid, headers):
     except Exception as e:
         print(f"请求任务{taskid}数据时出错: {e}")
         return None
-
 
 # 第二版获取投放任务下的所有任务
 # def update_task(taskId, username, password):

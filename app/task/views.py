@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+# from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from app.task.models import (Task, Tk_im, Creators, Tkuser_im, Tk_invacation, Tk_im, Tk_chat, Tk_information,
                              Tk_seller_im, Content, Tk_Invitation, Creator, BaseInfo, Product, Image, Rpa_key)
 import base64
@@ -527,7 +527,7 @@ def tk_invitation(request):
                             }
                         ],
                         "creatorIds": creator_ids,
-                        "expireDateTime": "2024-08-30",
+                        "expireDateTime": "2024-09-15",
                         "sampleRule": {
                             "hasFreeSample": True,
                             "sampleQuantity": 10
@@ -837,7 +837,28 @@ def seller_im(request, taskId):
 @csrf_exempt
 def get_im(request, taskId):
     try:
-        access_token = get_token()
+        # 获取 token
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+
+        # 解析 JWT token
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({'code': 401, 'errmsg': 'Token 已过期'})
+        except jwt.DecodeError:
+            return JsonResponse({'code': 401, 'errmsg': '无效的 Token'})
+
+        # 获取用户认证信息
+        user_id = payload['user_id']
+        try:
+            user = Rpa_key.objects.get(user_id=user_id)
+            username = user.username
+            password = user.password
+        except Rpa_key.DoesNotExist:
+            return JsonResponse({'code': 404, 'errmsg': '用户认证信息未找到'})
+        access_token = get_token(username, password)
         token = 'Bearer ' + access_token
         headers = {'Content-Type': 'application/json', 'Authorization': token}
         url = f"https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/seller-im/{taskId}"
@@ -1001,12 +1022,16 @@ def get_rpa_tasks(request, taskId):
         except Rpa_key.DoesNotExist:
             return JsonResponse({'code': 404, 'errmsg': '用户认证信息未找到'})
 
+        # 获取分页参数
+        page = int(request.GET.get('page', 1))
+        size = int(request.GET.get('size', 10))
+
         # 查询任务
         tasks = Tk_invacation.objects.filter(delivery_id=taskId)
         if not tasks.exists():
             return JsonResponse({"code": 204, "errmsg": "未找到任务"})
 
-        data = update_task(taskId, username, password)
+        data = update_task(taskId, username, password, page, size)
         return JsonResponse(data, safe=False, status=200)
 
     except Exception as e:
