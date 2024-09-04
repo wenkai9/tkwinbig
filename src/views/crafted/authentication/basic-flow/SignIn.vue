@@ -109,5 +109,7 @@ const handleLogin = async () => {
 
 onMounted(() => {
   Cookies.remove("Authorization");
+  window.localStorage.setItem("kt_theme_mode_value", "light");
+  window.localStorage.setItem("kt_theme_mode_menu", "light");
 });
 </script>

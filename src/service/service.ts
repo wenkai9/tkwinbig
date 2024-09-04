@@ -25,6 +25,7 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use((res) => {
+  // debugger
   // console.log(res, '---------');
   let resJson = res.data
   // console.log(resJson, 'resJson');
@@ -35,7 +36,11 @@ service.interceptors.response.use((res) => {
       type: 'error'
     });
 
-  } else {
+  } else if (resJson.code == 401 || resJson.errmsg == '未提供有效的身份认证,请重新登录') {
+    router.push({ name: "sign-in" });
+
+  }
+  else {
     // ElMessage({
     //   message: resJson.msg,
     //   type: 'success'
@@ -46,6 +51,7 @@ service.interceptors.response.use((res) => {
   return res
 },
   error => {
+
     console.log('err' + error);
     if (error.response.data.code == 401) {
       router.push({ name: "sign-in" });
