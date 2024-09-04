@@ -145,11 +145,25 @@
             <template #default="scope">
               <el-button
                 link
+                v-if="
+                  scope.row.status == 3 ||
+                  scope.row.status == 5 ||
+                  scope.row.status == 8
+                "
                 type="primary"
                 size="small"
                 @click="handleViewCreator(scope.row)"
               >
                 查看达人
+              </el-button>
+              <el-button
+                v-if="scope.row.status == 4"
+                link
+                type="primary"
+                size="small"
+                @click="handleRest(scope.row)"
+              >
+                重新邀约
               </el-button>
             </template>
           </el-table-column>
@@ -209,6 +223,7 @@ import {
   ApiGetSummary,
   ApiGetRpaTasks,
   ApiGetTaskCreator,
+  ApiResetTask,
 } from "@/api/launchmanagement";
 import { ElMessage } from "element-plus";
 const router = useRouter();
@@ -310,6 +325,22 @@ const changeTaskSize = (size: number) => {
   taskPageObj.size = size;
   GetRpaTasks();
 };
+
+// 重新 邀约
+const handleRest = (row: Object) => {
+  const taskId = row.taskId;
+  ApiResetTask(taskId).then((res: any) => {
+    console.log(res, "=========");
+    if (res.code != 200) {
+      return ElMessage({
+        message: res.errmsg,
+        type: "warning",
+      });
+    }
+    GetRpaTasks();
+  });
+};
+
 // 查看达人
 let modelCreatorData = ref([]);
 let CreatorDataDialo = ref(false);

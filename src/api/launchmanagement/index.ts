@@ -206,4 +206,12 @@ export function ApiGetTaskCreator(taskId: String, page: Number, size: Number) {
 
   });
 }
+// 重新邀约
+export function ApiResetTask(taskId: String) {
+  return service.request({
+    url: `/user/modify_rpa_state/${taskId}`,
+    method: "PUT",
+
+  });
+}
 
