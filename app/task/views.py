@@ -484,7 +484,6 @@ def tk_invitation(request):
             if not task_id:
                 return JsonResponse({"code": 400, "errmsg": "缺少字段： taskId"}, status=400)
 
-            # 获取任务信息
             task = Task.objects.get(taskId=task_id)
             user = User.objects.get(user_id=task.user_id)
             products = Goods.objects.filter(product_id=task.product_id).first()
@@ -501,11 +500,10 @@ def tk_invitation(request):
             start_index = 0
             batch_size = 50
             total_tasks_sent = 0
-            total_creator_count = 0  # 总创作者数量
-            task_details = []  # 用于存储每个任务的详细信息
+            total_creator_count = 0
+            task_details = []
 
             while True:
-                # 从数据库中获取创作者ID列表
                 creator_ids = get_creator_ids(task_id, start_index, batch_size)
                 if not creator_ids:
                     break
@@ -519,7 +517,7 @@ def tk_invitation(request):
                     "refTaskId": refTaskId,
                     "content": {
                         "shopId": shop_id,
-                        "name": f"YJQ-08-19-{n}",
+                        "name": f"YJQ-09-04-{n}",
                         "products": [
                             {
                                 "productId": task.product_id,
@@ -527,7 +525,7 @@ def tk_invitation(request):
                             }
                         ],
                         "creatorIds": creator_ids,
-                        "expireDateTime": "2024-09-15",
+                        "expireDateTime": "2024-09-20",
                         "sampleRule": {
                             "hasFreeSample": True,
                             "sampleQuantity": 10
@@ -758,6 +756,42 @@ def get_task_creator(request, taskId):
         size = int(request.GET.get('size', 10))
         data = get_rpa_creator(taskId, username, password, page, size)
         return JsonResponse(data, safe=False, status=200)
+    else:
+        return JsonResponse({"code": 405, "errmsg": "请求方法不支持"}, status=405)
+
+
+'''
+修改RPA任务邀约状态
+'''
+
+
+@csrf_exempt
+def modify_rpa_state(request, taskId):
+    if request.method == 'PUT':
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            username = Rpa_key.objects.get(user_id=user_id).username
+            password = Rpa_key.objects.get(user_id=user_id).password
+            data = {
+                "status": 11
+            }
+            access_token = get_token(username, password)
+            token = 'Bearer ' + access_token
+            headers = {'Content-Type': 'application/json', 'Authorization': token}
+            url = f"https://qtoss-connect.azurewebsites.net/qtoss-rpa/task/{taskId}"
+            response = requests.put(url=url, headers=headers, json=data)
+            print(response.status_code)
+            if response.status_code == 200:
+                return JsonResponse({"code": response.status_code, "msg": "修改任务状态成功"}, status=200)
+            else:
+                return JsonResponse({"code": response.status_code, "errmsg": "修改任务状态失败"},
+                                    status=response.status_code)
+        except Exception as e:
+            return JsonResponse({"code": 500, "errmsg": str(e)}, status=500)
     else:
         return JsonResponse({"code": 405, "errmsg": "请求方法不支持"}, status=405)
 

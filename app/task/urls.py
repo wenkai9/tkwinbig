@@ -36,6 +36,8 @@ urlpatterns = [
     path('get_invitation/<str:taskId>/detail', views.get_invitation_detail, name='get_invitation_detail'),
     # 展示邀约任务的达人
     path('get_task_creator/<str:taskId>', views.get_task_creator, name='get_task_creator'),
+    # 修改RPA任务状态重试
+    path('modify_rpa_state/<str:taskId>', views.modify_rpa_state, name='modify_rpa_state'),
     # 达人私信
     path("seller_im/<str:taskId>", views.seller_im, name="seller_im"),
     # 获取达人私信状态
