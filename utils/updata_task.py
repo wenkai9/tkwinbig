@@ -46,7 +46,7 @@ def update_task(taskId, username, password, page=1, size=10):
                             region=data.get('region'),
                             refTaskid=data.get('refTaskId'),
                             status=data.get('status'),
-                            receivestatus=data.get('receivestatus'),
+                            receivestatus=data.get('receiveStatus'),
                             message=data.get('message'),
                             createAt=data.get('createdAt'),
                             complateAt=data.get('complatedAt'),
