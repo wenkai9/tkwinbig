@@ -338,53 +338,79 @@ def upload_csv(request):
 
 # @csrf_exempt
 # def upload_csv(request):
-#     if request.method == 'POST' and request.FILES['csv_file']:
+#     if request.method == 'POST' and request.FILES.get('csv_file'):
 #         csv_file = request.FILES['csv_file']
+#
 #         if not csv_file.name.endswith('.csv'):
-#             return JsonResponse({"code": 400, 'errmsg': '不是csv类型的文件'}, status=400)
+#             return JsonResponse({"code": 400, 'errmsg': 'File is not a CSV'}, status=400)
+#
+#         # 读取 CSV 文件内容
 #         csv_data = csv.reader(io.TextIOWrapper(csv_file, encoding='gb2312'))
 #         headers = next(csv_data)
 #         products = []
+#
 #         for row in csv_data:
+#             try:
+#                 base_category = base_category2.objects.get(pk=row[6])
+#             except ObjectDoesNotExist:
+#                 return JsonResponse({"code": 400, 'errmsg': '无效的二级分类 ID'}, status=400)
+#
+#             match_tag = f"{row[0]}{base_category.name}"
 #             product = {
 #                 "商品标签": row[0],
 #                 "商品描述": row[1],
 #                 "商品价格": row[2],
-#                 "商品二级类目id": row[3],
-#                 "商品链接": row[4],
-#                 "商品的店铺id": row[5],
-#                 "匹配标签": row[0] + row[3]  # 标题+类目
+#                 "是否免费寄送样品": row[3],
+#                 "佣金率": row[4],
+#                 "合作费": row[5],
+#                 "商品二级类目id": row[6],
+#                 "商品链接": row[7],
+#                 "商品的店铺id": row[8],
+#                 "匹配标签": match_tag,
+#                 "物品状态": False
 #             }
 #             products.append(product)
-#             for product in products:
-#                 try:
-#                     Goods.objects.create(
-#                         title=product['商品描述'],
-#                         description=product['商品描述'],
-#                         price=product['商品价格'],
-#                         base_category2_id=product['商品二级类目id'],
-#                         product_link=product['商品链接'],
-#                         shop_id=product['商品的店铺id'],
-#                         match_tag=product['匹配标签']
-#                     )
-#                 except Exception as e:
-#                     return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
-#         # 连接阿里云OSS
-#         access_key_id = '***'
-#         access_key_secret = '***'
-#         bucket_name = 'tkwb-samples'
-#         endpoint = 'tkwb-samples.oss-cn-shanghai.aliyuncs.com'
-#         auth = oss2.Auth(access_key_id, access_key_secret)
-#         print(auth)
-#         bucket = oss2.Bucket(auth, endpoint, bucket_name)
-#         print(bucket)
-#         oss_file_name = 'cs_data/upload_csv.csv'  # 在OSS中的文件名
-#         print(oss_file_name)
-#         with open(csv_file.temporary_file_path(), 'rb') as f:
-#             bucket.put_object(oss_file_name, f)
-#             print('上传成功')
-#         return JsonResponse({"code": 200, 'success': True, 'products': products, 'oss_file_name': oss_file_name},
-#                             status=200)
+#
+#         # 保存数据到数据库
+#         for product in products:
+#             try:
+#                 Goods.objects.create(
+#                     title=product['商品描述'],
+#                     description=product['商品描述'],
+#                     price=product['商品价格'],
+#                     hasFreeSample=product['是否免费寄送样品'],
+#                     commissionRate=product['佣金率'],
+#                     CooperationFee=product['合作费'],
+#                     base_category2_id=product['商品二级类目id'],
+#                     product_link=product['商品链接'],
+#                     shop_id=product['商品的店铺id'],
+#                     match_tag=product['匹配标签'],
+#                     product_status=0  # 商品默认状态为0，表示未建联
+#                 )
+#             except Exception as e:
+#                 return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
+#
+#         # 从 settings 中读取 OSS 配置
+#         oss_config = settings.ALIYUN_OSS
+#         access_key_id = oss_config['ACCESS_KEY_ID']
+#         access_key_secret = oss_config['ACCESS_KEY_SECRET']
+#         endpoint = oss_config['ENDPOINT']
+#         bucket_name = oss_config['BUCKET_NAME']
+#
+#         # 上传文件到阿里云 OSS
+#         try:
+#             # 初始化 OSS 连接
+#             auth = oss2.Auth(access_key_id, access_key_secret)
+#             bucket = oss2.Bucket(auth, endpoint, bucket_name)
+#
+#             # 上传文件
+#             csv_file.seek(0)  # 将文件指针重置到开头
+#             bucket.put_object(csv_file.name, csv_file.read())
+#         except Exception as e:
+#             return JsonResponse({"code": 500, 'errmsg': f'上传文件到 OSS 失败: {str(e)}'}, status=500)
+#
+#         return JsonResponse({"code": 200, 'success': True, 'products': products}, status=200)
+#
 #     return JsonResponse({"code": 400, 'errmsg': '请求方法无效或未提供文件'}, status=400)
 
 
