@@ -16,6 +16,8 @@ urlpatterns = [
     path('get_shop/<int:taskId>', views.get_shop, name='get_product'),
     # 所有任务总和
     path('tasks/summary', views.get_tasks_sum, name='tasks_summary'),
+    # 查找所有投放任务下发送邀约任务发送成功达人数量
+    path('get_creator_count/', views.get_creator_count, name='tasks_summary'),
     # 删除任务
     path('delete_task/<int:taskId>', views.delete_task, name='delete_task'),
     # 向量检索

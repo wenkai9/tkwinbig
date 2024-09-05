@@ -233,6 +233,87 @@ def delete_task(request, taskId):
 
 
 '''
+查找所有投放任务下发送邀约任务发送成功的达人数量
+'''
+
+
+@csrf_exempt
+def get_creator_count(request):
+    if request.method == 'POST':
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证，请重新登录'}, status=401)
+
+        # 解码 JWT 令牌以获取用户信息
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({'code': 401, 'errmsg': '身份认证过期，请重新登录'}, status=401)
+        except jwt.InvalidTokenError:
+            return JsonResponse({'code': 401, 'errmsg': '无效的身份认证，请重新登录'}, status=401)
+
+        user_id = payload.get('user_id')
+        if not user_id:
+            return JsonResponse({'code': 401, 'errmsg': '无效的用户信息，请重新登录'}, status=401)
+
+        # 获取 RPA 认证信息
+        try:
+            rpa_key = Rpa_key.objects.get(user_id=user_id)
+            username = rpa_key.username
+            password = rpa_key.password
+        except Rpa_key.DoesNotExist:
+            return JsonResponse({'code': 404, 'errmsg': '未找到用户的 RPA 信息'}, status=404)
+
+        # 获取 API 访问令牌
+        token = get_token(username, password)
+        Authorization = f"Bearer {token}"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": Authorization
+        }
+
+        # 遍历所有投放计划
+        tasks = Task.objects.all()
+        update_data = []
+
+        for task in tasks:
+            task_id = task.taskId
+
+            # 获取状态为8的成功邀约任务
+            successful_invocations = Tk_invacation.objects.filter(delivery_id=task_id, status=8)
+            total_creator_cnt = 0
+
+            # 遍历每个邀约任务的 taskId
+            for inv_task in successful_invocations:
+                inv_task_id = inv_task.taskId
+
+                response = requests.get(
+                    f'https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/creator-invitation/{inv_task_id}/detail',
+                    headers=headers
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    creator_cnt = data.get('creator_cnt', 0)
+                    total_creator_cnt += creator_cnt
+                else:
+                    # 如果获取达人数量失败，继续下一个任务
+                    print(f"获取任务 ID 为 {inv_task_id} 的数据失败。状态码: {response.status_code}")
+                    continue
+
+            # 将计算出的达人数量更新到投放计划的 match_quantity 字段
+            update_data.append({'taskId': task_id, 'match_quantity': total_creator_cnt})
+
+        # 批量更新 Task 表的 match_quantity 字段
+        for update in update_data:
+            Task.objects.filter(taskId=update['taskId']).update(match_quantity=update['match_quantity'])
+
+        return JsonResponse({'status': 'success', 'updated_tasks': update_data})
+
+    return JsonResponse({'error': '请求方法无效'}, status=405)
+
+
+'''
 检索接口，http://120.27.208.224:8003/retrival，参数{"task_id": "1234abcd", "shop_id": "qwer222",  "products": "Resistance Bands,Balding Clippers"}
 '''
 
