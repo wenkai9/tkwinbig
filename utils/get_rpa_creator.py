@@ -1,11 +1,6 @@
-import json
-
-from botocore.paginate import Paginator
-from django.core.paginator import PageNotAnInteger, EmptyPage
 from django.core.cache import cache
 from app.task.models import Tk_Invitation, Product, Image, BaseInfo, Creator, Tk_invacation, Task
 import requests
-from django.db import transaction
 from utils.get_token import get_token
 
 
