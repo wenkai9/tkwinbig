@@ -2,14 +2,20 @@ import json
 
 from botocore.paginate import Paginator
 from django.core.paginator import PageNotAnInteger, EmptyPage
-
+from django.core.cache import cache
 from app.task.models import Tk_Invitation, Product, Image, BaseInfo, Creator, Tk_invacation, Task
 import requests
-
+from django.db import transaction
 from utils.get_token import get_token
 
 
 def get_rpa_creator(taskId, username, password, page=1, size=10):
+    # 定义缓存的键
+    cache_key = f"creator_data_{taskId}_page_{page}_size_{size}"
+    # 尝试从缓存中获取数据
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return cached_data
     try:
         access_token = get_token(username, password)
         token = 'Bearer ' + access_token
@@ -82,13 +88,17 @@ def get_rpa_creator(taskId, username, password, page=1, size=10):
             total_creators = len(creators)
             total_pages = (total_creators + size - 1) // size
 
-            return {
+            result = {
                 "code": 200,
                 "creators": creator_data,
                 "page": page,
                 "total_pages": total_pages,
                 "total_creators": total_creators
             }
+            # 将结果缓存15分钟
+            cache.set(cache_key, result, timeout=60 * 15)
+
+            return result
         except requests.exceptions.RequestException as e:
             print(f"请求失败: {e}")
             return None
