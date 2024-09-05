@@ -13,6 +13,7 @@ import string
 from ..goods.models import Goods, RaidsysRule
 from ..users.models import User
 import requests
+import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
@@ -509,7 +510,9 @@ def tk_invitation(request):
                     break
 
                 refTaskId = ''.join(random.choices(string.digits, k=9))  # 生成随机的refTaskId
-                n = ''.join(random.choices(string.digits, k=4))
+                n = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))  # 生成字母加数字的组合
+                now = datetime.datetime.now()  # 获取当前时间
+                date_string = now.strftime('%Y%m%d')  # 转换当前时间到"20240905"的格式
 
                 data_to_send = {
                     "type": 2,
@@ -517,7 +520,7 @@ def tk_invitation(request):
                     "refTaskId": refTaskId,
                     "content": {
                         "shopId": shop_id,
-                        "name": f"YJQ-09-04-{n}",
+                        "name": f"{product.title}-{date_string}-{n}",
                         "products": [
                             {
                                 "productId": task.product_id,
