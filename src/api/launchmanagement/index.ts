@@ -32,6 +32,14 @@ export function ApiGetProductsList(id: string, type: string) {
   });
 }
 
+// 修改商品
+export function ApiEditProducts(id: string, data: Object) {
+  return service.request({
+    url: `/user/update_product/${id}`,
+    method: "put",
+    data
+  });
+}
 
 export function ApiUpdataProducts(data: any) {
   const formData = new FormData();
@@ -47,9 +55,9 @@ export function ApiUpdataProducts(data: any) {
     });
 }
 
-export function ApiEditProducts(data: any, product_id) {
+export function ApiBindProducts(data: any, product_id) {
   return service.request({
-    url: `/user/update_product/${product_id}`,
+    url: `/user/bind_rule/${product_id}`,
     method: "put",
     data,
   });

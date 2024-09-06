@@ -72,23 +72,32 @@
           {{ scope.row.rule_name }}
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" width="120">
+      <el-table-column fixed="right" label="操作" width="250">
         <template #default="scope">
+          <el-button
+            link
+            v-if="!scope.row.product_status"
+            type="primary"
+            size="small"
+            @click="handleBind(scope.row)"
+          >
+            绑定规则
+          </el-button>
           <el-button
             link
             type="primary"
             size="small"
             @click="handleEdit(scope.row)"
           >
-            修改
+            编辑物品
           </el-button>
-          <!-- <el-button
+          <el-button
             link
             type="primary"
             size="small"
             @click="handleDelete(scope.row)"
             >删除</el-button
-          > -->
+          >
         </template>
       </el-table-column>
     </el-table>
@@ -161,6 +170,77 @@
         </div>
       </el-dialog>
     </div>
+    <!-- 编辑物品 -->
+    <div>
+      <el-dialog v-model="editDialog" title="编辑物品">
+        <div>
+          <el-form
+            class="demo-form-inline"
+            style="max-width: 600px"
+            label-width="auto"
+          >
+            <el-form-item label="商品标题:">
+              <el-input
+                v-model.trim="editGoodsObj.title"
+                placeholder="请输入商品标题"
+                clearable
+              />
+            </el-form-item>
+            <el-form-item label="商品描述:">
+              <el-input
+                v-model.trim="editGoodsObj.description"
+                placeholder="请输入商品描述"
+                clearable
+              />
+            </el-form-item>
+            <el-form-item label="商品价格:">
+              <el-input
+                onkeyup="value=value.replace(/[^\d]/g,'')"
+                v-model.trim="editGoodsObj.price"
+                placeholder="请输入商品价格"
+                clearable
+              />
+            </el-form-item>
+            <el-form-item label="商品链接:">
+              <el-input
+                v-model.trim="editGoodsObj.product_link"
+                placeholder="请输入商品链接"
+                clearable
+              />
+            </el-form-item>
+
+            <el-form-item label="是否免费寄样品:">
+              <el-switch
+                inline-prompt
+                v-model="editGoodsObj.hasFreeSample"
+                active-text="开启"
+                inactive-text="关闭"
+              />
+            </el-form-item>
+            <el-form-item label="佣金率:">
+              <el-input
+                v-model.trim="editGoodsObj.commissionRate"
+                placeholder="请输入商品佣金率"
+                clearable
+              />
+            </el-form-item>
+            <el-form-item label="合作费:">
+              <el-input
+                v-model.trim="editGoodsObj.CooperationFee"
+                placeholder="请输入商品合作费"
+                clearable
+              />
+            </el-form-item>
+
+            <el-form-item>
+              <el-button type="primary" @click="handleSubmitEditGoods"
+                >提交</el-button
+              >
+            </el-form-item>
+          </el-form>
+        </div>
+      </el-dialog>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
@@ -168,9 +248,10 @@ import { reactive, ref } from "vue";
 import {
   ApiGetProducts,
   ApiUpdataProducts,
-  ApiEditProducts,
+  ApiBindProducts,
   ApiDeteleProducts,
   ApiGetListRules,
+  ApiEditProducts,
 } from "@/api/launchmanagement";
 import { ElMessage, ElMessageBox } from "element-plus";
 const modelData = ref([]);
@@ -185,6 +266,7 @@ const SampleMap = reactive({
   false: "否",
 });
 const dialogVisible = ref(false);
+const editDialog = ref(false);
 let formData = ref({
   raidsysrule_id: "",
 });
@@ -211,9 +293,35 @@ const changeSize = (size: number) => {
   GetProducts();
 };
 
-const handleEdit = (item: object) => {
+const handleBind = (item: object) => {
   dialogVisible.value = true;
   id.value = item.product_id;
+};
+
+const editGoodsObj = ref();
+const goodsId = ref("");
+const handleEdit = (item: Object) => {
+  editDialog.value = true;
+  editGoodsObj.value = item;
+  goodsId.value = item.product_id;
+};
+
+const handleSubmitEditGoods = () => {
+  ApiEditProducts(goodsId.value, editGoodsObj.value).then((res) => {
+    console.log(res, "修改商品======");
+    if (res.code !== 200) {
+      return ElMessage({
+        message: res.errmsg,
+        type: "warning",
+      });
+    }
+    ElMessage({
+      message: "操作成功",
+      type: "success",
+    });
+    editDialog.value = false;
+    GetProducts();
+  });
 };
 
 let RulesPageObj = reactive({
@@ -242,7 +350,7 @@ const changeRulesSize = (size: number) => {
 const choiceRules = (data) => {
   console.log(data, "------");
   formData.value.raidsysrule_id = data.id;
-  ApiEditProducts(formData.value, id.value).then((res) => {
+  ApiBindProducts(formData.value, id.value).then((res) => {
     console.log(res.code, "==========");
     if (res.code != 200) {
       return ElMessage({
