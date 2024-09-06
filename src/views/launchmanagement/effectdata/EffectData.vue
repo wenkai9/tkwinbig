@@ -43,14 +43,13 @@
       <el-table
         v-loading="loading"
         :data="modelTasksData"
-        border
         :header-cell-style="{
           backgroundColor: '#f6f7fc',
           color: '#1f283c',
           fontSize: '14px',
-          textAlign: 'left',
+          textAlign: 'center',
         }"
-        :cell-style="{ textAlign: 'left' }"
+        :cell-style="{ textAlign: 'center' }"
       >
         <el-table-column label="建立任务名称" width="200">
           <template #default="scope">
@@ -89,7 +88,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column fixed="right" label="查看投放任务详情" width="180">
+        <el-table-column fixed="right" label="查看投放任务详情">
           <template #default="scope">
             <el-button
               link

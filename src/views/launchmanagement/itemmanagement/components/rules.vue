@@ -7,23 +7,22 @@
     <div style="margin-top: 1.25rem">
       <el-table
         :data="modelRulesData"
-        border
         :header-cell-style="{
           backgroundColor: '#f6f7fc',
           color: '#1f283c',
           fontSize: '14px',
-          textAlign: 'left',
+          textAlign: 'center',
         }"
-        :cell-style="{ textAlign: 'left' }"
+        :cell-style="{ textAlign: 'center' }"
         v-loading="loading"
         style="width: 100%"
       >
-        <el-table-column label="建联名称" width="280">
+        <el-table-column label="建联名称" width="160">
           <template #default="scope">
             {{ scope.row.name }}
           </template>
         </el-table-column>
-        <el-table-column label="视频拍摄要求" width="600">
+        <el-table-column label="视频拍摄要求" width="760">
           <!-- <template #default="scope">
             {{ scope.row.requirement }}
           </template> -->

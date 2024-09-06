@@ -7,14 +7,13 @@
       <el-table
         :data="modelData"
         v-loading="loading"
-        border
         :header-cell-style="{
           backgroundColor: '#f6f7fc',
           color: '#1f283c',
           fontSize: '14px',
-          textAlign: 'left',
+          textAlign: 'center',
         }"
-        :cell-style="{ textAlign: 'left' }"
+        :cell-style="{ textAlign: 'center' }"
         style="width: 100%"
       >
         <el-table-column prop="shop_name" label="店铺名称" width="180" />
@@ -22,7 +21,7 @@
         <el-table-column prop="location" label="店铺地区" />
         <el-table-column prop="description" label="店铺描述" />
         <el-table-column prop="createAt" label="创建时间" />
-        <el-table-column fixed="right" label="操作" width="120">
+        <el-table-column fixed="right" label="操作">
           <template #default="scope">
             <el-button
               link

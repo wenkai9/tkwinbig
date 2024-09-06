@@ -46,14 +46,13 @@
     <div>
       <el-table
         :data="modelData"
-        border
         :header-cell-style="{
           backgroundColor: '#f6f7fc',
           color: '#1f283c',
           fontSize: '14px',
-          textAlign: 'left',
+          textAlign: 'center',
         }"
-        :cell-style="{ textAlign: 'left' }"
+        :cell-style="{ textAlign: 'center' }"
         style="width: 100%"
       >
         <el-table-column label="物品名称" width="280">

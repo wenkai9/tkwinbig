@@ -24,14 +24,13 @@
       <div style="margin-top: 1.25rem">
         <el-table
           :data="modelTasksData"
-          border
           :header-cell-style="{
             backgroundColor: '#f6f7fc',
             color: '#1f283c',
             fontSize: '14px',
-            textAlign: 'left',
+            textAlign: 'center',
           }"
-          :cell-style="{ textAlign: 'left' }"
+          :cell-style="{ textAlign: 'center' }"
           v-loading="loading"
         >
           <el-table-column label="建立任务名称" width="225">
@@ -39,8 +38,8 @@
               {{ scope.row.name }}
             </template>
           </el-table-column>
-          <el-table-column prop="product_title" label="物品名称" width="450" />
-          <el-table-column label="任务状态" width="180">
+          <el-table-column prop="product_title" label="物品名称" width="250" />
+          <el-table-column label="任务状态" width="120">
             <template #default="scope">
               {{ scope.row.status }}
             </template>
@@ -48,7 +47,7 @@
           <el-table-column
             prop="total_invitations"
             label="总邀约数"
-            width="180"
+            width="100"
           >
             <template #default="scope">
               {{ scope.row.willing_quantity || "/" }}
@@ -70,7 +69,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="createAt" label="创建时间" width="260" />
-          <el-table-column fixed="right" label="操作" width="120">
+          <el-table-column fixed="right" label="操作">
             <template #default="scope">
               <div style="display: flex">
                 <el-button
