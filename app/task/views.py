@@ -13,7 +13,7 @@ import string
 from ..goods.models import Goods, RaidsysRule
 from ..users.models import User
 import requests
-import datetime
+# import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
@@ -538,6 +538,56 @@ def get_db_key(request):
 
 
 '''
+登录tiktok店铺
+'''
+
+
+@csrf_exempt
+def login_shop(request, taskId):
+    if request.method == 'POST':
+        try:
+            token = request.COOKIES.get('Authorization')
+            if not token:
+                return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'}, status=401)
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            username = Rpa_key.objects.get(user_id=user_id).username
+            password = Rpa_key.objects.get(user_id=user_id).password
+            access_token = get_token(username, password)
+            data = json.loads(request.body)
+            task_id = data.get('taskId')
+            email = data.get('email')
+            password = data.get('password')
+            task = Task.objects.get(taskId=task_id)
+            shop_id = task.shop_id
+            refTaskId = ''.join(random.choices(string.digits, k=9))
+            data = {
+                "type": 1,
+                "region": "US",
+                "shopId": shop_id,
+                "refTaskId": refTaskId,
+                "content": {
+                    "method": "email",
+                    "email": email,
+                    "password": password
+                }
+            }
+            token = 'Bearer ' + access_token
+            headers = {'Content-Type': 'application/json', 'Authorization': token}
+            url = 'https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/seller-login'
+            response = requests.post(url, headers=headers, json=data)
+            if response.status_code == 200:
+                res = response.json()
+                return JsonResponse({"code": 200, "data": res}, status=200)
+            else:
+                return JsonResponse({"code": response.status_code, "errmsg": "登录失败"}, status=response.status_code)
+        except Exception as e:
+            return JsonResponse({"code": 500, "errmsg": f"服务器内部错误: {str(e)}"}, status=500)
+    else:
+        return JsonResponse({"code": 405, "errmsg": "方法不允许"}, status=405)
+
+
+'''
 达人邀约
 '''
 
@@ -592,16 +642,16 @@ def tk_invitation(request):
 
                 refTaskId = ''.join(random.choices(string.digits, k=9))  # 生成随机的refTaskId
                 n = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))  # 生成字母加数字的组合
-                now = datetime.datetime.now()  # 获取当前时间
-                date_string = now.strftime('%Y%m%d')  # 转换当前时间到"20240905"的格式
+                # now = datetime.datetime.now()  # 获取当前时间
+                # date_string = now.strftime('%Y%m%d')  # 转换当前时间到"20240905"的格式
 
                 data_to_send = {
                     "type": 2,
                     "region": "US",
                     "refTaskId": refTaskId,
+                    "shopId": shop_id,
                     "content": {
-                        "shopId": shop_id,
-                        "name": f"{product.title}-{date_string}-{n}",
+                        "name": f"{product.title}-20240906-{n}",
                         "products": [
                             {
                                 "productId": task.product_id,
@@ -861,7 +911,7 @@ def modify_rpa_state(request, taskId):
             username = Rpa_key.objects.get(user_id=user_id).username
             password = Rpa_key.objects.get(user_id=user_id).password
             data = {
-                "status": 11
+                "status": 1
             }
             access_token = get_token(username, password)
             token = 'Bearer ' + access_token

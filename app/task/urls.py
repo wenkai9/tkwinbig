@@ -30,6 +30,8 @@ urlpatterns = [
     path('get_db_key', views.get_db_key, name='get_db_key'),
     # 获取RPA客户端密钥
     path('get_rpa_key', views.get_rpa_key, name='get_rpa_key'),
+    # 登录tiktok店铺
+    path('login_shop', views.login_shop, name='get_shop_key'),
     # 达人邀约
     path('tk_invitation', views.tk_invitation, name='tk_invitation'),
     # 获取邀约任务信息
