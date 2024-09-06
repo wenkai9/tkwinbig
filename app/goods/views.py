@@ -3,6 +3,7 @@ import os
 import oss2
 import json
 import csv
+from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -183,60 +184,52 @@ def get_products(request, shop_id):
         return JsonResponse({"code": 405, 'errmsg': '只支持 GET 请求'}, status=405)
 
 
-# @csrf_exempt
-# def update_product(request, product_id):
-#     if request.method == 'PUT':
-#         try:
-#             data = json.loads(request.body)
-#             # 验证 title 和 description 是否被正确提供
-#             title = data.get('title')
-#             description = data.get('description')
-#             if not title or not description:
-#                 return JsonResponse({"code": 400, 'errmsg': '标题和描述为必填项'}, status=400)
-#             # try:
-#             #     RaidsysRule.objects.get(pk=data['id'])
-#             # except ObjectDoesNotExist:
-#             #     return JsonResponse({"code": 400, 'errmsg': '建联规则不存在'}, status=400)
-#             product = Goods.objects.get(id=product_id)
-#             # 更新商品信息
-#             product.title = title
-#             product.description = description
-#             product.price = data.get('price', product.price)
-#             product.base_category2_id = data.get('base_category2_id', product.base_category2_id)
-#             product.product_link = data.get('product_link', product.product_link)
-#             product.match_tag = data.get('match_tag', product.match_tag)
-#             product.hasFreeSample = data.get('hasFreeSample', product.hasFreeSample)
-#             product.commissionRate = data.get('commissionRate', product.commissionRate)
-#             product.CooperationFee = data.get('CooperationFee', product.CooperationFee)
-#             # product.product_status = 1  # 商品状态改为1，表示已建联
-#             # product.raidsysrule_id = data['id']
-#             product.save()
-#             data = {
-#                 "product_id": product.id,
-#                 "title": product.title,
-#                 "description": product.description,
-#                 "price": str(product.price),
-#                 "base_category2_id": product.base_category2_id,
-#                 "product_link": product.product_link,
-#                 "shopId": product.shop_id,
-#                 "match_tag": product.match_tag,
-#                 "hasFreeSample": product.hasFreeSample,
-#                 "commissionRate": product.commissionRate,
-#                 "CooperationFee": product.CooperationFee,
-#                 # "product_status": product.product_status,
-#                 # "raidsysrule_id": product.raidsysrule_id,
-#                 "updatedAt": str(product.updatedAt)
-#             }
-#             return JsonResponse({"code": 200, "msg": "商品信息更新成功", "data": data}, status=200)
-#         except Goods.DoesNotExist:
-#             return JsonResponse({"code": 404, 'errmsg': '商品不存在'}, status=404)
-#         except Exception as e:
-#             return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
-from django.shortcuts import get_object_or_404
+@csrf_exempt
+def update_product(request, product_id):
+    if request.method == 'PUT':
+        try:
+            data = json.loads(request.body)
+
+            # 获取指定的商品
+            try:
+                product = Goods.objects.get(product_id=product_id)
+            except Goods.DoesNotExist:
+                return JsonResponse({"code": 404, 'errmsg': '商品不存在'}, status=404)
+
+            # 更新允许的字段，如果未提供则保留原有的值
+            product.title = data.get('title', product.title)
+            product.description = data.get('description', product.description)
+            product.price = data.get('price', product.price)
+            product.hasFreeSample = data.get('hasFreeSample', product.hasFreeSample)
+            product.commissionRate = data.get('commissionRate', product.commissionRate)
+            product.CooperationFee = data.get('CooperationFee', product.CooperationFee)
+            product.product_link = data.get('product_link', product.product_link)
+            product.save()
+
+            response_data = {
+                "product_id": product.product_id,
+                "title": product.title,
+                "description": product.description,
+                "price": str(product.price),
+                "hasFreeSample": product.hasFreeSample,
+                "commissionRate": str(product.commissionRate),
+                "CooperationFee": str(product.CooperationFee),
+                "product_link": product.product_link,
+                "updatedAt": str(product.updatedAt)
+            }
+
+            return JsonResponse({"code": 200, "msg": "商品信息更新成功", "data": response_data}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"code": 400, 'errmsg': '无效的JSON数据'}, status=400)
+        except Exception as e:
+            return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
+
+    return JsonResponse({"code": 405, 'errmsg': '请求方法无效'}, status=405)
 
 
 @csrf_exempt
-def update_product(request, product_id):
+def bind_rule(request, product_id):
     if request.method == 'PUT':
         try:
             data = json.loads(request.body)
@@ -413,6 +406,10 @@ def upload_csv(request):
 #
 #     return JsonResponse({"code": 400, 'errmsg': '请求方法无效或未提供文件'}, status=400)
 
+'''
+导出文件
+'''
+
 
 @csrf_exempt
 def download_excel(request):
@@ -442,6 +439,33 @@ def download_excel(request):
         return response
     else:
         return JsonResponse({"code": 405, 'errmsg': '只支持 GET 请求'}, status=405)
+
+
+@csrf_exempt
+def download_sample_csv(request):
+    if request.method == 'GET':
+        # 创建一个 HTTP 响应对象，设置为 CSV 文件类型
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="sample_product_format.csv"'
+
+        # 创建 CSV 写入器
+        writer = csv.writer(response)
+
+        # 写入 CSV 文件头
+        writer.writerow([
+            '商品标签', '商品描述', '商品价格', '是否免费寄送样品',
+            '佣金率', '合作费', '商品二级类目id', '商品链接', '商品的店铺id',
+            '物品标签', '物品状态'
+        ])
+
+        # 写入一行示例数据，以帮助用户理解格式
+        writer.writerow([
+            '示例标签', '示例描述', '123.45', '是',
+            '10%', '100.00', '123', 'http://example.com', '456',
+            '示例物品标签', '在售'
+        ])
+
+        return response
 
 
 @csrf_exempt
@@ -544,7 +568,8 @@ def list_products_all(request):
                                                                                             'CooperationFee')
             elif category_type == 'lv_2':
                 # 查询二级分类下的商品
-                data = Goods.objects.filter(base_category2_id=category_id).values('product_id', 'title', 'description', 'price',
+                data = Goods.objects.filter(base_category2_id=category_id).values('product_id', 'title', 'description',
+                                                                                  'price',
                                                                                   'base_category2_id',
                                                                                   'product_link', 'match_tag',
                                                                                   'hasFreeSample', 'commissionRate',
