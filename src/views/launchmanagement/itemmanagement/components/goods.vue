@@ -44,7 +44,7 @@
           </el-tooltip>
         </template>
       </el-table-column>
-      <el-table-column label="物品标签" width="280">
+      <el-table-column label="物品标签" width="220">
         <template #default="scope">
           {{ scope.row.match_tag }}
         </template>
