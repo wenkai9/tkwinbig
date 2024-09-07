@@ -114,14 +114,13 @@
       <el-dialog v-model="dialogVisible">
         <div>
           <el-table
-            border
             :header-cell-style="{
               backgroundColor: '#f6f7fc',
               color: '#1f283c',
               fontSize: '14px',
-              textAlign: 'left',
+              textAlign: 'center',
             }"
-            :cell-style="{ textAlign: 'left' }"
+            :cell-style="{ textAlign: 'center' }"
             :data="modelRulesData"
             @current-change="choiceRules"
             highlight-current-row
@@ -131,7 +130,7 @@
                 {{ scope.row.name }}
               </template>
             </el-table-column>
-            <el-table-column label="视频拍摄要求" width="280">
+            <el-table-column label="视频拍摄要求" width="580">
               <template #default="scope">
                 <el-tooltip
                   class="item"
@@ -156,7 +155,7 @@
               </template>
             </el-table-column>
           </el-table>
-          <div style="margin-top: 20px">
+          <div style="margin-top: 20px; text-align: right">
             <el-button type="primary" @click="handleSubmitBindRule"
               >提交</el-button
             >
@@ -404,5 +403,9 @@ defineExpose({
   -webkit-line-clamp: 2;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+::v-deep .el-table__body tr.current-row > td {
+  background: #61afff !important;
+  color: #ffffff !important;
 }
 </style>
