@@ -20,6 +20,7 @@ from django.shortcuts import get_object_or_404
 from utils.get_token import get_token
 from utils.updata_task import update_task
 from utils.get_rpa_creator import get_rpa_creator
+# from utils.is_creator import is_creator
 import jwt
 from django.conf import settings
 
@@ -588,6 +589,30 @@ def login_shop(request, taskId):
 
 
 '''
+查看达人是否存在
+'''
+
+
+# @csrf_exempt
+# def is_creators_exist(request):
+#     if request.method == 'POST':
+#         try:
+#             token = request.COOKIES.get('Authorization')
+#             if not token:
+#                 return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'}, status=401)
+#             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+#             user_id = payload['user_id']
+#             username = Rpa_key.objects.get(user_id=user_id).username
+#             password = Rpa_key.objects.get(user_id=user_id).password
+#             data = json.loads(request.body)
+#             taskId = data.get('taskId')
+#             result = is_creator(taskId, username, password)
+#             return JsonResponse({"code": 200, "data": result}, status=200)
+#         except Exception as e:
+#             return JsonResponse({"code": 500, "errmsg": f"服务器内部错误: {str(e)}"}, status=500)
+
+
+'''
 达人邀约
 '''
 
@@ -811,7 +836,6 @@ def get_invitation_detail(request, taskId):
                     ) for item in data.get('creator_id_list', [])
                 ]
 
-                # 处理 product_list
                 products = [
                     Product(
                         product_id=item['product_id'],
@@ -829,7 +853,6 @@ def get_invitation_detail(request, taskId):
                     ) for item in data.get('product_list', [])
                 ]
 
-                # 创建并保存 MainData 文档
                 invitation = Tk_Invitation(
                     id=taskId,
                     name=data['name'],

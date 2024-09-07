@@ -32,6 +32,8 @@ urlpatterns = [
     path('get_rpa_key', views.get_rpa_key, name='get_rpa_key'),
     # 登录tiktok店铺
     path('login_shop', views.login_shop, name='get_shop_key'),
+    # 查看达人是否有效
+    # path('is_creator/<str:taskId>', views.is_creators_exist, name='is_creator'),
     # 达人邀约
     path('tk_invitation', views.tk_invitation, name='tk_invitation'),
     # 获取邀约任务信息
