@@ -24,12 +24,16 @@ def add_product(request, page=None):
                 Shop.objects.get(shopId=data['shopId'])
             except ObjectDoesNotExist:
                 return JsonResponse({"code": 400, 'errmsg': '无效的店铺 ID'}, status=400)
-            # try:
-            #     base_category = base_category2.objects.get(pk=data['base_category2_id'])
-            # except ObjectDoesNotExist:
-            #     return JsonResponse({"code": 400, 'errmsg': '无效的二级分类 ID'}, status=400)
-            # match_tag = f"{data['title']}_{base_category.name}"
             match_tag = f"{data['title']}"
+
+            try:
+                Goods.objects.get(product_id=data['product_id'])
+                return JsonResponse({"code": 409, 'errmsg': '产品ID已存在'}, status=409)
+            except Goods.DoesNotExist:
+                pass  # 继续流程
+            except Goods.MultipleObjectsReturned:
+                return JsonResponse({"code": 400, 'errmsg': '产品ID重复'}, status=400)
+
             product = Goods.objects.create(
                 product_id=data['product_id'],
                 title=data['title'],
@@ -62,6 +66,8 @@ def add_product(request, page=None):
                 "createdAt": str(product.createdAt)
             }
             return JsonResponse({"code": 200, "msg": "商品添加成功", "data": data}, status=200)
+        except KeyError as e:
+            return JsonResponse({"code": 400, 'errmsg': f"缺少必要的字段: {str(e)}"}, status=400)
         except Exception as e:
             return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
     elif request.method == 'GET':
