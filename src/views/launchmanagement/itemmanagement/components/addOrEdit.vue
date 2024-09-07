@@ -15,6 +15,8 @@
         </el-form-item>
         <el-form-item label="商品描述:">
           <el-input
+            type="textarea"
+            :rows="5"
             v-model.trim="formData.description"
             placeholder="请输入商品描述"
             clearable

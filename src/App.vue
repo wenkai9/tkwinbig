@@ -1,5 +1,8 @@
 <template>
-  <RouterView />
+  <!-- <RouterView /> -->
+  <el-config-provider :locale="zhCn">
+    <router-view></router-view>
+  </el-config-provider>
 </template>
 
 <script lang="ts">
@@ -10,7 +13,8 @@ import { useThemeStore } from "@/stores/theme";
 import { useBodyStore } from "@/stores/body";
 import { themeConfigValue } from "@/layouts/default-layout/config/helper";
 import { initializeComponents } from "@/core/plugins/keenthemes";
-
+import { ElConfigProvider } from "element-plus";
+import zhCn from "element-plus/dist/locale/zh-cn.mjs";
 export default defineComponent({
   name: "app",
   components: {

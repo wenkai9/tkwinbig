@@ -50,7 +50,7 @@
             width="100"
           >
             <template #default="scope">
-              {{ scope.row.willing_quantity || "/" }}
+              {{ scope.row.total_invitations || "/" }}
             </template>
           </el-table-column>
           <el-table-column

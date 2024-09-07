@@ -124,6 +124,7 @@
             :cell-style="{ textAlign: 'left' }"
             :data="modelRulesData"
             @current-change="choiceRules"
+            highlight-current-row
           >
             <el-table-column label="建联名称" width="280">
               <template #default="scope">
@@ -131,9 +132,6 @@
               </template>
             </el-table-column>
             <el-table-column label="视频拍摄要求" width="280">
-              <!-- <template #default="scope">
-                {{ scope.row.requirement }}
-              </template> -->
               <template #default="scope">
                 <el-tooltip
                   class="item"
@@ -158,6 +156,11 @@
               </template>
             </el-table-column>
           </el-table>
+          <div style="margin-top: 20px">
+            <el-button type="primary" @click="handleSubmitBindRule"
+              >提交</el-button
+            >
+          </div>
         </div>
         <div>
           <GlobalPage
@@ -188,6 +191,7 @@
             </el-form-item>
             <el-form-item label="商品描述:">
               <el-input
+                type="textarea"
                 v-model.trim="editGoodsObj.description"
                 placeholder="请输入商品描述"
                 clearable
@@ -349,7 +353,11 @@ const changeRulesSize = (size: number) => {
 };
 const choiceRules = (data) => {
   console.log(data, "------");
-  formData.value.raidsysrule_id = data.id;
+  if (data != null) {
+    formData.value.raidsysrule_id = data.id;
+  }
+};
+const handleSubmitBindRule = () => {
   ApiBindProducts(formData.value, id.value).then((res) => {
     console.log(res.code, "==========");
     if (res.code != 200) {
@@ -366,7 +374,6 @@ const choiceRules = (data) => {
     GetProducts();
   });
 };
-
 const handleDelete = (item: object) => {
   ElMessageBox.confirm("确定删除该商品吗?")
     .then(() => {

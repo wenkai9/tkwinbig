@@ -9,7 +9,6 @@
         <el-table
           :data="shopData"
           v-loading="shopLoading"
-          border
           :header-cell-style="{
             backgroundColor: '#f6f7fc',
             color: '#1f283c',
@@ -36,14 +35,14 @@
           />
         </div>
       </div>
-      <template #footer>
+      <!-- <template #footer>
         <div class="dialog-footer">
-          <el-button @click="props.shopDialog = false">Cancel</el-button>
+          <el-button @click="props.shopDialog = false">取消</el-button>
           <el-button type="primary" @click="props.shopDialog = false">
-            Confirm
+            提交
           </el-button>
         </div>
-      </template>
+      </template> -->
     </el-dialog>
   </div>
 </template>
