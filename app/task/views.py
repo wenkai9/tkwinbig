@@ -12,16 +12,17 @@ import random
 import string
 from ..goods.models import Goods, RaidsysRule
 from ..users.models import User
-import requests
-# import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from utils.get_token import get_token
 from utils.updata_task import update_task
 from utils.get_rpa_creator import get_rpa_creator
-# from utils.is_creator import is_creator
+from utils.is_creator import is_creator
+from django.db.models import Sum
 import jwt
+import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from django.conf import settings
 
 '''
@@ -47,6 +48,7 @@ def create_task(request):
                 shop_id=data.get('shopId'),
                 region=f"{data['p_name']}{data['c_name']}{data['r_name']}",
                 status='1',
+                filter_status=False,
                 match_quantity=0,
                 willing_quantity=0,
                 send_quantity=0,
@@ -72,7 +74,8 @@ def create_task(request):
                         Creators.objects.create(
                             taskId=task,
                             tag=tag,  # 换成产品名称
-                            product=product
+                            product=product,
+                            is_creator=False
                         )
 
                 return JsonResponse({"code": 200, "msg": "任务创建成功"}, status=200)
@@ -118,6 +121,7 @@ def list_tasks(request, task_id=None):
                         'taskId': task.taskId,
                         'name': task.name,
                         'product_title': Goods.objects.get(product_id=task.product_id).title,
+                        'filter_status': task.filter_status,
                         'status': {"1": "未启动", "2": "正在进行", "3": "已完成"}[task.status],
                         'shop_id': task.shop_id,
                         'shop_name': task.shop.shop_name,
@@ -156,6 +160,7 @@ def list_tasks(request, task_id=None):
                         'taskId': task.taskId,
                         'name': task.name,
                         'product_title': Goods.objects.get(product_id=task.product_id).title,
+                        'filter_status': task.filter_status,
                         'status': {"1": "未启动", "2": "正在进行", "3": "已完成"}[task.status],
                         'shop_id': task.shop_id,
                         'shop_name': task.shop.shop_name,
@@ -245,7 +250,6 @@ def get_creator_count(request):
         if not token:
             return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证，请重新登录'}, status=401)
 
-        # 解码 JWT 令牌以获取用户信息
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
@@ -258,60 +262,127 @@ def get_creator_count(request):
             return JsonResponse({'code': 401, 'errmsg': '无效的用户信息，请重新登录'}, status=401)
 
         # 获取 RPA 认证信息
-        try:
-            rpa_key = Rpa_key.objects.get(user_id=user_id)
-            username = rpa_key.username
-            password = rpa_key.password
-        except Rpa_key.DoesNotExist:
-            return JsonResponse({'code': 404, 'errmsg': '未找到用户的 RPA 信息'}, status=404)
+        rpa_key = Rpa_key.objects.get(user_id=user_id)
+        username = rpa_key.username
+        password = rpa_key.password
+        # username = "song"
+        # password = "306012"
 
-        # 获取 API 访问令牌
         token = get_token(username, password)
-        Authorization = f"Bearer {token}"
+        authorization = f"Bearer {token}"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": Authorization
+            "Authorization": authorization
         }
 
-        # 遍历所有投放计划
-        tasks = Task.objects.all()
+        task_ids = Task.objects.values_list('taskId', flat=True)
         update_data = []
 
-        for task in tasks:
-            task_id = task.taskId
-
-            # 获取状态为8的成功邀约任务
-            successful_invocations = Tk_invacation.objects.filter(delivery_id=task_id, status=8)
+        def process_task(task_id):
             total_creator_cnt = 0
+            successful_invocations = Tk_invacation.objects.filter(delivery_id=task_id, status=8).values_list('taskId',
+                                                                                                             flat=True)
 
-            # 遍历每个邀约任务的 taskId
-            for inv_task in successful_invocations:
-                inv_task_id = inv_task.taskId
+            with requests.Session() as session:
+                session.headers.update(headers)
+                for inv_task_id in successful_invocations:
+                    response = session.get(
+                        url=f'https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/creator-invitation/{inv_task_id}/detail'
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        creator_cnt = data.get('creator_cnt', 0)
+                        total_creator_cnt += creator_cnt
+                    else:
+                        print(f"获取任务 ID 为 {inv_task_id} 的数据失败。状态码: {response.status_code}")
 
-                response = requests.get(
-                    f'https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/creator-invitation/{inv_task_id}/detail',
-                    headers=headers
-                )
+            return {'taskId': task_id, 'send_quantity': total_creator_cnt}
 
-                if response.status_code == 200:
-                    data = response.json()
-                    creator_cnt = data.get('creator_cnt', 0)
-                    total_creator_cnt += creator_cnt
-                else:
-                    # 如果获取达人数量失败，继续下一个任务
-                    print(f"获取任务 ID 为 {inv_task_id} 的数据失败。状态码: {response.status_code}")
-                    continue
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = {executor.submit(process_task, task_id): task_id for task_id in task_ids}
+            for future in as_completed(futures):
+                update_data.append(future.result())
 
-            # 将计算出的达人数量更新到投放计划的 match_quantity 字段
-            update_data.append({'taskId': task_id, 'match_quantity': total_creator_cnt})
+        with transaction.atomic():
+            Task.objects.bulk_update(
+                [Task(taskId=update['taskId'], send_quantity=update['send_quantity']) for update in update_data],
+                fields=['send_quantity']
+            )
 
-        # 批量更新 Task 表的 match_quantity 字段
-        for update in update_data:
-            Task.objects.filter(taskId=update['taskId']).update(match_quantity=update['match_quantity'])
+        return JsonResponse({'code': 200, 'msg': "更新成功"}, status=200)
 
-        return JsonResponse({'status': 'success', 'updated_tasks': update_data})
+    return JsonResponse({"code": 405, 'error': '请求方法无效'}, status=405)
 
-    return JsonResponse({'error': '请求方法无效'}, status=405)
+
+# @csrf_exempt
+# def get_creator_count(request):
+#     if request.method == 'POST':
+#         token = request.COOKIES.get('Authorization')
+#         if not token:
+#             return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证，请重新登录'}, status=401)
+#
+#         # 解码 JWT 令牌以获取用户信息
+#         try:
+#             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+#         except jwt.ExpiredSignatureError:
+#             return JsonResponse({'code': 401, 'errmsg': '身份认证过期，请重新登录'}, status=401)
+#         except jwt.InvalidTokenError:
+#             return JsonResponse({'code': 401, 'errmsg': '无效的身份认证，请重新登录'}, status=401)
+#
+#         user_id = payload.get('user_id')
+#         if not user_id:
+#             return JsonResponse({'code': 401, 'errmsg': '无效的用户信息，请重新登录'}, status=401)
+#
+#         # 获取 RPA 认证信息
+#         rpa_key = Rpa_key.objects.get(user_id=user_id)
+#         print(rpa_key.username, rpa_key.password)
+#         username = rpa_key.username
+#         password = rpa_key.password
+#         # username = "song"
+#         # password = "306012"
+#         token = get_token(username, password)
+#         Authorization = f"Bearer {token}"
+#         headers = {
+#             "Content-Type": "application/json",
+#             "Authorization": Authorization
+#         }
+#
+#         # 遍历所有投放计划
+#         tasks = Task.objects.all()
+#         update_data = []
+#
+#         for task in tasks:
+#             task_id = task.taskId
+#
+#             # 获取状态为8的成功邀约任务
+#             successful_invocations = Tk_invacation.objects.filter(delivery_id=task_id, status=8)
+#             total_creator_cnt = 0
+#
+#             # 遍历每个邀约任务的 taskId
+#             for inv_task in successful_invocations:
+#                 inv_task_id = inv_task.taskId
+#
+#                 response = requests.get(
+#                     url=f'https://qtoss-connect.azurewebsites.net/qtoss-connect/tiktok/creator-invitation/{inv_task_id}/detail',
+#                     headers=headers
+#                 )
+#                 print(response)
+#                 if response.status_code == 200:
+#                     data = response.json()
+#                     creator_cnt = data.get('creator_cnt', 0)
+#                     total_creator_cnt += creator_cnt
+#                 else:
+#                     print(f"获取任务 ID 为 {inv_task_id} 的数据失败。状态码: {response.status_code}")
+#                     continue
+#
+#             update_data.append({'taskId': task_id, 'send_quantity': total_creator_cnt})
+#
+#         for update in update_data:
+#             Task.objects.filter(taskId=update['taskId']).update(send_quantity=update['send_quantity'])
+#
+#         return JsonResponse({'code': 200, 'updated_tasks': update_data}, status=200)
+#
+#     return JsonResponse({"code": 405, 'error': '请求方法无效'}, status=405)
 
 
 '''
@@ -344,6 +415,7 @@ def retrieval(request):
                         taskId=params["task_id"],
                         tag=params["products"],
                         product=product,
+                        is_creator=False
                     )
 
                 return JsonResponse({"code": 200, "data": retrieval_result}, status=200)
@@ -593,23 +665,27 @@ def login_shop(request, taskId):
 '''
 
 
-# @csrf_exempt
-# def is_creators_exist(request):
-#     if request.method == 'POST':
-#         try:
-#             token = request.COOKIES.get('Authorization')
-#             if not token:
-#                 return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'}, status=401)
-#             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-#             user_id = payload['user_id']
-#             username = Rpa_key.objects.get(user_id=user_id).username
-#             password = Rpa_key.objects.get(user_id=user_id).password
-#             data = json.loads(request.body)
-#             taskId = data.get('taskId')
-#             result = is_creator(taskId, username, password)
-#             return JsonResponse({"code": 200, "data": result}, status=200)
-#         except Exception as e:
-#             return JsonResponse({"code": 500, "errmsg": f"服务器内部错误: {str(e)}"}, status=500)
+@csrf_exempt
+def is_creators_exist(request, taskId):
+    if request.method == 'GET':
+        try:
+            token = request.COOKIES.get('Authorization')
+            if not token:
+                return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'}, status=401)
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            username = Rpa_key.objects.get(user_id=user_id).username
+            password = Rpa_key.objects.get(user_id=user_id).password
+            # username = "song"
+            # password = "306012"
+            result = is_creator(taskId, username, password)
+            task = Task.objects.get(taskId=taskId)
+            stus = True
+            task.filter_status = stus
+            task.save()
+            return JsonResponse({"code": 200, "data": result}, status=200)
+        except Exception as e:
+            return JsonResponse({"code": 500, "errmsg": f"服务器内部错误: {str(e)}"}, status=500)
 
 
 '''
