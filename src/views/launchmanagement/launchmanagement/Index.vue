@@ -73,6 +73,15 @@
             <template #default="scope">
               <div style="display: flex">
                 <el-button
+                  v-if="!scope.row.filter_status"
+                  link
+                  type="primary"
+                  size="small"
+                  @click="handleFilter(scope.row.taskId)"
+                >
+                  过滤
+                </el-button>
+                <el-button
                   v-if="scope.row.status == '未启动'"
                   link
                   type="primary"
@@ -214,6 +223,7 @@ import {
   ApiInvitationCreator,
   ApigetQtossKey,
   ApigetQtossUser,
+  ApiFilterCreator,
 } from "@/api/launchmanagement";
 import { ApigetShop_tasks, ApigetGood_shop } from "@/api/shop";
 import { ApiPostSendMsg_Invitation } from "../../../api/rpa";
@@ -321,7 +331,23 @@ const handleAdd = () => {
   });
   window.open(url.href, "_blank");
 };
-
+const handleFilter = (id) => {
+  ElMessageBox.confirm("过滤达人需要耐心等候,确定是否进行过滤").then(() => {
+    ApiFilterCreator(id).then((res: any) => {
+      if (res.code != 200) {
+        return ElMessage({
+          message: res.errmsg,
+          type: "warning",
+        });
+      }
+      ElMessage({
+        message: "操作成功",
+        type: "success",
+      });
+      GetTasks();
+    });
+  });
+};
 const handleStart = (id) => {
   console.log(id);
   ElMessageBox.confirm("一旦启动,不可暂停")

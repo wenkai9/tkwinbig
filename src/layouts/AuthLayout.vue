@@ -19,11 +19,28 @@
       <div class="d-flex flex-center flex-wrap px-5">
         <!--begin::Links-->
         <div class="d-flex fw-semibold text-primary fs-base">
-          <a href="#" class="px-5" target="_blank">Terms</a>
+          <div>
+            <span class="text-muted fw-semibold me-1"
+              >Copyright © 2024 QTOSS</span
+            >
 
-          <a href="#" class="px-5" target="_blank">Plans</a>
+            <span class="text-muted fw-semibold me-1"
+              >天棋.&nbsp;All rights reserved.</span
+            >
+          </div>
+          <div style="text-align: center">
+            <a
+              style="color: #409eff"
+              href="https://beian.miit.gov.cn/"
+              target="_blank"
+              >粤ICP备2024281084号-3</a
+            >
+          </div>
+          <!-- <a href="#" class="px-5" target="_blank">Terms</a> -->
 
-          <a href="#" class="px-5" target="_blank">Contact Us</a>
+          <!-- <a href="#" class="px-5" target="_blank">Plans</a> -->
+
+          <!-- <a href="#" class="px-5" target="_blank">Contact Us</a> -->
         </div>
         <!--end::Links-->
       </div>

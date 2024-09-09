@@ -144,6 +144,16 @@ export function ApiGetRetrieval(data: any) {
     data
   });
 }
+// 过滤达人
+export function ApiFilterCreator(taskId) {
+  return service.request({
+    url: `/user/is_creator/${taskId}`,
+    // url: `/user/tk_invitation`,
+    method: "get",
+    // data
+  });
+}
+
 
 //启动任务
 export function ApiStartTasks(taskId) {
@@ -219,6 +229,15 @@ export function ApiResetTask(taskId: String) {
   return service.request({
     url: `/user/modify_rpa_state/${taskId}`,
     method: "PUT",
+
+  });
+}
+
+// 查新达人数量
+export function ApiGetCreatorCount() {
+  return service.request({
+    url: `/user/get_creator_count`,
+    method: "post",
 
   });
 }

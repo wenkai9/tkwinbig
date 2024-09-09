@@ -69,7 +69,7 @@
         <el-form-item label="商品二级分类:">
           <el-select
             v-model="formData.base_category2_id"
-            placeholder="Select"
+            placeholder="请选择商品分类"
             size="large"
             style="width: 240px"
             @change="handleChange"

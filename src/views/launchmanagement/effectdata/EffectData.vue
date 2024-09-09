@@ -223,6 +223,7 @@ import {
   ApiGetRpaTasks,
   ApiGetTaskCreator,
   ApiResetTask,
+  ApiGetCreatorCount,
 } from "@/api/launchmanagement";
 import { ElMessage } from "element-plus";
 const router = useRouter();
@@ -267,7 +268,11 @@ const GetTasks = () => {
       loading.value = false;
     });
 };
-
+const GetCreatorCount = () => {
+  ApiGetCreatorCount().then((res: any) => {
+    console.log(res, "==========");
+  });
+};
 const changePage = (page: number) => {
   pageObj.page = page;
   GetTasks();
@@ -387,6 +392,7 @@ ApiGetSummary().then((res) => {
 });
 onMounted(() => {
   GetTasks();
+  GetCreatorCount();
 });
 </script>
 <style scoped lang="scss">

@@ -8,7 +8,6 @@
       <div>
         <el-table
           :data="goodData"
-          border
           :header-cell-style="{
             backgroundColor: '#f6f7fc',
             color: '#1f283c',
@@ -21,7 +20,26 @@
           @current-change="choiceGood"
         >
           <el-table-column prop="title" label="物品名称" width="280" />
-          <el-table-column prop="description" label="物品描述" width="280" />
+          <el-table-column prop="description" label="物品描述" width="280">
+            <template #default="scope">
+              <el-tooltip
+                class="item"
+                effect="dark"
+                :content="scope.row.description"
+                placement="top"
+              >
+                <template #content>
+                  <p style="width: 280px">
+                    <span>{{ scope.row.description }} </span>
+                  </p>
+                </template>
+                <div>
+                  <div class="wrap_row2">{{ scope.row.description }}</div>
+                </div>
+              </el-tooltip>
+            </template>
+          </el-table-column>
+
           <el-table-column prop="match_tag" label="物品标签" />
         </el-table>
         <div>
@@ -34,14 +52,14 @@
           />
         </div>
       </div>
-      <template #footer>
+      <!-- <template #footer>
         <div class="dialog-footer">
           <el-button @click="handleCloseGoodDialog">取消</el-button>
           <el-button type="primary" @click="dialogVisible = false">
             Confirm
           </el-button>
         </div>
-      </template>
+      </template> -->
     </el-dialog>
   </div>
 </template>
@@ -94,4 +112,13 @@ const choiceGood = (val) => {
   emit("handleCloseGoodDialog", false);
 };
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.wrap_row2 {
+  cursor: pointer;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>

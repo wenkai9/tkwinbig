@@ -408,4 +408,7 @@ defineExpose({
   background: #61afff !important;
   color: #ffffff !important;
 }
+.wrap_title {
+  cursor: pointer;
+}
 </style>
