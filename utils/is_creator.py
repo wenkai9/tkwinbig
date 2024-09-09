@@ -51,16 +51,23 @@ def is_creator(taskId, username, password):
             if result:
                 results.extend(result)
 
+    count_equals_one = sum(1 for item in results if item['count'] == 1)
+
+    for item in results:
+        if item['count'] == 1:
+            Creators.objects.filter(taskId=taskId, product=item['keyword']).update(is_creator=True)
+
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"耗费的时间: {elapsed_time:.2f} 秒")
+    print(f"有效达人数量有{count_equals_one}个")
 
     return results
 
 
 # 示例使用
-username = "song"
-password = "306012"
-tasks = "454723797"
-results = is_creator(tasks, username, password)
-print(results)
+# username = "song"
+# password = "306012"
+# tasks = "925100Q"
+# results = is_creator(tasks, username, password)
+# print(results)
