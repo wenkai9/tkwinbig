@@ -17,6 +17,7 @@ class Task(models.Model):
     product = models.ForeignKey(Goods, on_delete=models.CASCADE)
     region = models.CharField(max_length=20)
     status = models.CharField(max_length=1, choices=TASK_STATUS_CHOICES, default='1')
+    filter_status = models.BooleanField(default=False, blank=True, null=True)
     match_quantity = models.IntegerField(null=True)
     willing_quantity = models.IntegerField(null=True)
     send_quantity = models.IntegerField(null=True)
@@ -35,6 +36,7 @@ class Creators(models.Model):
     taskId = models.CharField(max_length=255)
     tag = models.CharField(max_length=255)
     product = models.TextField(blank=True, null=True)
+    is_creator = models.BooleanField(blank=True, null=True, default=False)
 
     def __str__(self):
         return str(self.taskId)
@@ -44,7 +46,7 @@ class Creators(models.Model):
 
 
 # 达人私信的信息
-class Tk_im(models.Model):  #需修改成Tk_seller及修改字段
+class Tk_im(models.Model):
     taskId = models.CharField(max_length=255)
     type = models.IntegerField(blank=True, null=True)
     region = models.CharField(max_length=20)
