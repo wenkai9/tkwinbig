@@ -17,7 +17,7 @@ urlpatterns = [
     # 所有任务总和
     path('tasks/summary', views.get_tasks_sum, name='tasks_summary'),
     # 查找所有投放任务下发送邀约任务发送成功达人数量
-    path('get_creator_count/', views.get_creator_count, name='tasks_summary'),
+    path('get_creator_count', views.get_creator_count, name='tasks_summary'),
     # 删除任务
     path('delete_task/<int:taskId>', views.delete_task, name='delete_task'),
     # 向量检索
@@ -33,7 +33,7 @@ urlpatterns = [
     # 登录tiktok店铺
     path('login_shop', views.login_shop, name='get_shop_key'),
     # 查看达人是否有效
-    # path('is_creator/<str:taskId>', views.is_creators_exist, name='is_creator'),
+    path('is_creator/<str:taskId>', views.is_creators_exist, name='is_creator'),
     # 达人邀约
     path('tk_invitation', views.tk_invitation, name='tk_invitation'),
     # 获取邀约任务信息
