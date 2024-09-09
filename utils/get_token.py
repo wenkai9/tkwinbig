@@ -9,7 +9,6 @@ def get_token(username, password):
         url = "https://qtoss-connect.azurewebsites.net/token"
         base64_str = b.decode('utf-8')
         authorization = 'Basic ' + base64_str
-        # print("authorization", authorization)
         response = requests.post(url=url, headers={'Content-Type': 'application/json',
                                                    'Authorization': authorization})
         data = response.json()
