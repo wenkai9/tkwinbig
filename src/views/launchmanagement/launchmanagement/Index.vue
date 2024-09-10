@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-card>
-      <span style="padding-right: 10px">
+      <!-- <span style="padding-right: 10px">
         <el-select
           clearable
           @change="changeShop"
@@ -16,7 +16,7 @@
             :value="item.shopId"
           />
         </el-select>
-      </span>
+      </span> -->
       <el-button type="primary" @click="handleAdd">新建建联</el-button>
       <el-button v-if="!first" type="primary" @click="handleGetKey"
         >获取RPA客户端秘钥</el-button
@@ -281,10 +281,10 @@ const changeShop = (id) => {
 };
 
 const GetTasks = (id) => {
-  const params = {
-    shopId: id,
-  };
-  ApiGetTasks(params, pageObj.page, pageObj.size)
+  // const params = {
+  //   shopId: id,
+  // };
+  ApiGetTasks(pageObj.page, pageObj.size)
     .then((res) => {
       loading.value = true;
       console.log(res, "查询");

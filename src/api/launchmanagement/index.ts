@@ -141,11 +141,11 @@ export function ApiAddRulesRules(data: object) {
 
 
 // 查询任务列表
-export function ApiGetTasks(params, page: Number, size: Number) {
+export function ApiGetTasks(page: Number, size: Number) {
   return service.request({
     url: `/user/list_tasks?page=${page}&size=${size}`,
     method: "get",
-    params
+
   });
 }
 export function ApiGetRetrieval(data: any) {
