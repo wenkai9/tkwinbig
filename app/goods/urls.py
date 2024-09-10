@@ -10,6 +10,8 @@ urlpatterns = [
     path('list_products/<int:page>', views.list_products, name='list_products_paged'),
     # 店铺下的所有商品
     path('get_product/<str:shop_id>', views.get_products, name='get_product'),
+    # 获取cookie对应的店铺
+    path('get_shop', views.get_shop, name='get_product'),
     # 编辑商品
     path('update_product/<str:product_id>', views.update_product, name='update_product'),
     # 绑定规则
@@ -19,7 +21,7 @@ urlpatterns = [
     # 上传csv文件
     path('upload_csv', views.upload_csv, name='upload_csv'),
     # 下载上传文件模版
-    path('download_sample_csv', views.download_sample_csv, name='delete_csv'),
+    path('download_sample_csv', views.download_sample_csv, name='download_sample_csv'),
     # 下载excel文件
     path('download_excel', views.download_excel, name='download_excel'),
     # 获取全部类目下的商品信息

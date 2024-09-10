@@ -1,8 +1,15 @@
 import io
 import os
+import random
+import string
+from datetime import datetime
+
+import jwt
 import oss2
 import json
 import csv
+
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -11,14 +18,32 @@ from django.core.exceptions import ObjectDoesNotExist
 from ..shops.models import Shop
 from .models import base_category1, base_category2, Goods, RaidsysRule
 from openpyxl import Workbook
-from djangoProject1 import settings
-
+import re
 
 @csrf_exempt
 def add_product(request, page=None):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
+
+            # 正则表达式验证字段
+            if not re.match(r'^\d+$', str(data.get('product_id'))):
+                return JsonResponse({"code": 400, 'errmsg': '无效的产品ID，必须是数字'}, status=400)
+            if not re.match(r'^[\w\s\-]{1,100}$', data.get('title', '')):
+                return JsonResponse({"code": 400, 'errmsg': '无效的标题，包含非法字符或超出长度限制'}, status=400)
+            if not re.match(r'^[\w\s\-]+$', data.get('match_tag', '')):
+                return JsonResponse({"code": 400, 'errmsg': '无效的匹配标签，包含非法字符'}, status=400)
+            if not re.match(r'^\d+(\.\d{1,2})?$', str(data.get('price', ''))):
+                return JsonResponse({"code": 400, 'errmsg': '无效的价格格式，必须是数字，最多两位小数'}, status=400)
+            if data.get('commissionRate') is not None and not re.match(r'^\d+(\.\d{1,2})?$',
+                                                                       str(data.get('commissionRate'))):
+                return JsonResponse({"code": 400, 'errmsg': '无效的佣金率格式，必须是数字，最多两位小数'}, status=400)
+            if data.get('CooperationFee') is not None and not re.match(r'^\d+(\.\d{1,2})?$',
+                                                                       str(data.get('CooperationFee'))):
+                return JsonResponse({"code": 400, 'errmsg': '无效的合作费用格式，必须是数字，最多两位小数'}, status=400)
+            if not re.match(r'^https?:\/\/[\w\-\.]+\.\w+.*$', data.get('product_link', '')):
+                return JsonResponse({"code": 400, 'errmsg': '无效的产品链接，必须是有效的URL'}, status=400)
+
             # 检查 shop_id 是否存在
             try:
                 Shop.objects.get(shopId=data['shopId'])
@@ -107,8 +132,15 @@ def list_products(request, page=None):
         if not token:
             return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
         try:
+            shopId = request.GET.get('shopId')
+            if not shopId:
+                first_shop = Shop.objects.first()
+                if first_shop:
+                    shopId = first_shop.shopId
+                else:
+                    return JsonResponse({'code': 400, 'errmsg': '没有找到任何店铺'}, status=400)
             size = int(request.GET.get('size', 10))  # 如果未提供，默认为 10
-            all_products = Goods.objects.all().order_by('product_id')
+            all_products = Goods.objects.filter(shop_id=shopId).order_by('product_id')
             paginator = Paginator(all_products, size)
             page_number = request.GET.get('page')
             try:
@@ -157,6 +189,37 @@ def list_products(request, page=None):
             return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
     else:
         return JsonResponse({"code": 405, 'errmsg': '仅支持 GET 请求'}, status=405)
+
+
+'''
+获取cookie对应的店铺
+'''
+
+
+@csrf_exempt
+def get_shop(request):
+    if request.method == 'GET':
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            all_shops = Shop.objects.filter(user_id=user_id).order_by('shopId')
+            serialized_shops = [{
+                "shopId": shop.shopId,
+                "shop_name": shop.shop_name,
+                "location": shop.location,
+                "description": shop.description,
+                "user_id": shop.user_id,
+                "createAt": shop.createAt.strftime("%Y-%m-%d %H:%M:%S")
+            } for shop in all_shops]
+
+            return JsonResponse({"code": 200, "data": serialized_shops}, status=200)
+        except Exception as e:
+            return JsonResponse({"code": 500, 'errmsg': str(e)}, status=500)
+    else:
+        return JsonResponse({"code": 405, 'errmsg': '只支持 GET 请求'}, status=405)
 
 
 @csrf_exempt
@@ -440,7 +503,6 @@ def download_excel(request):
                        product.product_link, product.shop_id, product.match_tag,
                        str(product.createdAt), str(product.updatedAt)])
 
-        # 将工作簿保存到响应中
         wb.save(response)
         return response
     else:
@@ -450,28 +512,37 @@ def download_excel(request):
 @csrf_exempt
 def download_sample_csv(request):
     if request.method == 'GET':
-        # 创建一个 HTTP 响应对象，设置为 CSV 文件类型
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="sample_product_format.csv"'
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="上传物品模版.xlsx"'
 
-        # 创建 CSV 写入器
-        writer = csv.writer(response)
+        # 创建一个工作簿并添加一个工作表
+        wb = Workbook()
+        ws = wb.active
+        ws.append(['商品ID(TKShop商品ID)', '标题', '描述', '价格', '是否免费寄送样品', '佣金率', '合作费', '第三级类目', '商品链接(TK商品链接)',
+                   '店铺ID(TKShop店铺ID)', '匹配标签', '创建时间', '更新时间'])
 
-        # 写入 CSV 文件头
-        writer.writerow([
-            '商品标签', '商品描述', '商品价格', '是否免费寄送样品',
-            '佣金率', '合作费', '商品二级类目id', '商品链接', '商品的店铺id',
-            '物品标签', '物品状态'
-        ])
+        for i in range(5):  # 生成5条示例数据
+            product_id = ''.join(random.choices('0123456789', k=19))
+            title = '示例标题' + str(i)
+            description = '这是示例描述' + str(i)
+            price = round(random.uniform(1, 1000), 2)
+            hasFreeSample = random.choice(['是', '否'])
+            commissionRate = round(random.uniform(1, 50), 2)
+            CooperationFee = round(random.uniform(0, 50), 2)
+            base_category2_id = ''.join(random.choices(string.digits, k=3))
+            product_link = f'http://tiktok.com/{product_id}'
+            shop_id = ''.join(random.choices('0123456789', k=19))
+            match_tag = '示例标签' + str(i)
+            createdAt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            updatedAt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        # 写入一行示例数据，以帮助用户理解格式
-        writer.writerow([
-            '示例标签', '示例描述', '123.45', '是',
-            '10%', '100.00', '123', 'http://example.com', '456',
-            '示例物品标签', '在售'
-        ])
+            ws.append([product_id, title, description, str(price), hasFreeSample, commissionRate, CooperationFee,
+                       base_category2_id, product_link, shop_id, match_tag, createdAt, updatedAt])
 
+        wb.save(response)
         return response
+    else:
+        return JsonResponse({"code": 405, 'errmsg': '只支持 GET 请求'}, status=405)
 
 
 @csrf_exempt
