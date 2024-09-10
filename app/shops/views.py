@@ -1,4 +1,7 @@
 import json
+
+import jwt
+from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -47,7 +50,11 @@ def list_shops(request, page=None):
         token = request.COOKIES.get('Authorization')
         if not token:
             return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证,请重新登录'})
-        all_shops = Shop.objects.all().order_by('shopId')
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        user_id = payload['user_id']
+        # user_id = "20"
+        # all_shops = Shop.objects.all().order_by('shopId')
+        all_shops = Shop.objects.filter(user_id=user_id).order_by('shopId')
 
         size = int(request.GET.get('size', 10))
 
