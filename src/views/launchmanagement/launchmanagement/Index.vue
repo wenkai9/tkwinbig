@@ -1,6 +1,22 @@
 <template>
   <div>
     <el-card>
+      <span style="padding-right: 10px">
+        <el-select
+          clearable
+          @change="changeShop"
+          v-model="ShopId"
+          placeholder="请选择店铺"
+          style="width: 240px"
+        >
+          <el-option
+            v-for="item in ShopOptions"
+            :key="item.shopId"
+            :label="item.shop_name"
+            :value="item.shopId"
+          />
+        </el-select>
+      </span>
       <el-button type="primary" @click="handleAdd">新建建联</el-button>
       <el-button v-if="!first" type="primary" @click="handleGetKey"
         >获取RPA客户端秘钥</el-button
@@ -224,6 +240,7 @@ import {
   ApigetQtossKey,
   ApigetQtossUser,
   ApiFilterCreator,
+  ApiGetShop,
 } from "@/api/launchmanagement";
 import { ApigetShop_tasks, ApigetGood_shop } from "@/api/shop";
 import { ApiPostSendMsg_Invitation } from "../../../api/rpa";
@@ -237,7 +254,7 @@ let formData = reactive({
   shop_id: "",
   products: "",
 });
-
+let ShopId = ref("");
 let loading = ref(false);
 const pageObj = reactive({
   page: 1,
@@ -250,8 +267,24 @@ const statusMap = ref({
   2: "正在进行",
   3: "已经完成",
 });
-const GetTasks = () => {
-  ApiGetTasks(pageObj.page, pageObj.size)
+const ShopOptions = ref([]);
+const GetShop = () => {
+  ApiGetShop().then((res) => {
+    console.log(res, "店铺列表");
+    ShopOptions.value = res.data;
+    // ShopId.value = res.data[0].shopId;
+  });
+};
+const changeShop = (id) => {
+  ShopId.value = id;
+  GetTasks(ShopId.value);
+};
+
+const GetTasks = (id) => {
+  const params = {
+    shopId: id,
+  };
+  ApiGetTasks(params, pageObj.page, pageObj.size)
     .then((res) => {
       loading.value = true;
       console.log(res, "查询");
@@ -271,12 +304,12 @@ const GetTasks = () => {
 
 const changePage = (page: number) => {
   pageObj.page = page;
-  GetTasks();
+  GetTasks(ShopId.value);
 };
 const changeSize = (size: number) => {
   pageObj.size = size;
   pageObj.page = 1;
-  GetTasks();
+  GetTasks(ShopId.value);
 };
 let dialogVisible = ref(false);
 let modelQtossParams = reactive({
@@ -378,6 +411,7 @@ const handleStart = (id) => {
     .catch(() => {});
 };
 onMounted(() => {
+  GetShop();
   GetTasks();
   getQtossKey();
 });

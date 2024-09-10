@@ -2,6 +2,22 @@
   <div>
     <el-card>
       <div style="display: flex">
+        <div style="margin-right: 10px">
+          <el-select
+            clearable
+            @change="changeShop"
+            v-model="ShopId"
+            placeholder="请选择店铺"
+            style="width: 240px"
+          >
+            <el-option
+              v-for="item in ShopOptions"
+              :key="item.shopId"
+              :label="item.shop_name"
+              :value="item.shopId"
+            />
+          </el-select>
+        </div>
         <el-button type="primary" @click="handleAdd">新增物品</el-button>
         <el-button type="primary" @click="handleUpdata" v-preventReClick="2000"
           >上传CSV文件
@@ -17,8 +33,8 @@
           >导出</el-button
         >
       </div>
-      <div style="margin-top: 1.25rem">
-        <Good ref="GoodRef" />
+      <div style="margin-top: 1.25rem" v-if="ShopId && ShopId != ''">
+        <Good ref="GoodRef" :ShopId="ShopId" />
       </div>
     </el-card>
     <el-card style="margin-top: 1.25rem">
@@ -27,14 +43,35 @@
   </div>
 </template>
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { reactive, ref, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
-import { ApiExportProducts } from "@/api/launchmanagement";
+import { ApiExportProducts, ApiGetShop } from "@/api/launchmanagement";
+
 import { ElMessage, ElMessageBox } from "element-plus";
 import axios from "axios";
 const router = useRouter();
 import Good from "./components/goods.vue";
 import Rules from "./components/rules.vue";
+const pageObj = {
+  page: 1,
+  size: 10,
+  total: null,
+};
+const ShopId = ref("");
+const ShopOptions = ref([]);
+const GetShop = () => {
+  ApiGetShop().then((res) => {
+    ShopOptions.value = res.data;
+  });
+};
+
+const changeShop = (id) => {
+  ShopId.value = id;
+  nextTick(() => {
+    GoodRef.value.GetProducts(ShopId.value);
+  });
+};
+
 const handleExport = () => {
   ApiExportProducts();
 };
@@ -86,5 +123,9 @@ const handleAdd = () => {
   });
   window.open(url.href, "_blank");
 };
+
+onMounted(() => {
+  GetShop();
+});
 </script>
 <style></style>

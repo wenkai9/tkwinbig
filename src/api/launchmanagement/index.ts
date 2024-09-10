@@ -1,5 +1,15 @@
 import service from "@/service/service";
 import axios from 'axios';
+
+// 查询店铺
+export function ApiGetShop() {
+  return service.request({
+    url: `/user/get_shop`,
+    method: "get",
+
+  });
+}
+
 export function ApiGetProducts(params: any, page: Number, size: Number) {
   return service.request({
     url: `/user/list_products?page=${page}&size=${size}`,
@@ -131,10 +141,11 @@ export function ApiAddRulesRules(data: object) {
 
 
 // 查询任务列表
-export function ApiGetTasks(page: Number, size: Number) {
+export function ApiGetTasks(params, page: Number, size: Number) {
   return service.request({
     url: `/user/list_tasks?page=${page}&size=${size}`,
     method: "get",
+    params
   });
 }
 export function ApiGetRetrieval(data: any) {

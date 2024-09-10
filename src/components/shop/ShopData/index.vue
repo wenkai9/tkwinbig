@@ -17,7 +17,7 @@
         style="width: 100%"
       >
         <el-table-column prop="shop_name" label="店铺名称" width="180" />
-        <el-table-column prop="shopId" label="店铺ID" width="180" />
+        <el-table-column prop="shopId" label="店铺ID" width="210" />
         <el-table-column prop="location" label="店铺地区" />
         <el-table-column prop="description" label="店铺描述" />
         <el-table-column prop="createAt" label="创建时间" />

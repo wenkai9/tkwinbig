@@ -248,6 +248,9 @@
 </template>
 <script setup lang="ts">
 import { reactive, ref } from "vue";
+const props = defineProps({
+  ShopId: String,
+});
 import {
   ApiGetProducts,
   ApiUpdataProducts,
@@ -274,10 +277,13 @@ let formData = ref({
   raidsysrule_id: "",
 });
 const id = ref("");
-const GetProducts = async () => {
+const GetProducts = async (id) => {
   try {
     loading.value = true;
-    const response = await ApiGetProducts("", pageObj.page, pageObj.size);
+    const params = {
+      shopId: id || props.ShopId,
+    };
+    const response = await ApiGetProducts(params, pageObj.page, pageObj.size);
     modelData.value = [...response.products];
     pageObj.total = response.total_products || 0;
   } catch (error) {
@@ -289,11 +295,11 @@ const GetProducts = async () => {
 
 const changePage = (page: number) => {
   pageObj.page = page;
-  GetProducts();
+  GetProducts(props.ShopId);
 };
 const changeSize = (size: number) => {
   pageObj.size = size;
-  GetProducts();
+  GetProducts(props.ShopId);
 };
 
 const handleBind = (item: object) => {
@@ -323,7 +329,7 @@ const handleSubmitEditGoods = () => {
       type: "success",
     });
     editDialog.value = false;
-    GetProducts();
+    GetProducts(props.ShopId);
   });
 };
 
@@ -370,7 +376,7 @@ const handleSubmitBindRule = () => {
       type: "success",
     });
     dialogVisible.value = false;
-    GetProducts();
+    GetProducts(props.ShopId);
   });
 };
 const handleDelete = (item: object) => {
@@ -382,7 +388,7 @@ const handleDelete = (item: object) => {
           message: "操作成功",
           type: "success",
         });
-        GetProducts();
+        GetProducts(props.ShopId);
       });
     })
     .catch(() => {
