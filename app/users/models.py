@@ -7,6 +7,7 @@ class User(models.Model):
     password = models.CharField(max_length=128)
     email = models.EmailField()
     number = models.CharField(max_length=20)
+    avatar_url = models.TextField(null=True, blank=True)
     company = models.CharField(max_length=100)
     create_at = models.DateTimeField(auto_now_add=True)
 
