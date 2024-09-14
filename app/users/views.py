@@ -7,14 +7,11 @@ from datetime import datetime, timedelta
 import jwt
 from django.conf import settings
 import re
+import oss2
 
+auth = oss2.Auth(settings.OSS_ACCESS_KEY_ID, settings.OSS_ACCESS_KEY_SECRET)
+bucket = oss2.Bucket(auth, settings.OSS_ENDPOINT, settings.OSS_BUCKET_NAME)
 
-# def generate_jwt(user_id):
-#     payload = {
-#         'user_id': user_id,
-#         'exp': datetime.utcnow() + timedelta(days=1)  # 设置过期时间为1天
-#     }
-#     return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 
 def generate_jwt(user_id):
     expiration_time = datetime.utcnow() + timedelta(days=1)  # 设置过期时间为1天
@@ -157,6 +154,7 @@ def user_login(request):
     return JsonResponse({'code': 400, 'errmsg': '只允许POST请求'})
 
 
+@csrf_exempt
 def user_profile(request):
     if request.method == 'GET':
         # 从请求头中获取 JWT
@@ -168,13 +166,16 @@ def user_profile(request):
             # 解码 JWT
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
             user_id = payload['user_id']
+            # user_id = 20
 
             # 查询用户信息
             user = User.objects.get(user_id=user_id)
             user_info = {
                 'username': user.username,
+                'company': user.company,
                 'number': user.number,
-                'email': user.email
+                'email': user.email,
+                'avatar_url': user.avatar_url
             }
             return JsonResponse({'code': 200, 'data': user_info})
         except jwt.ExpiredSignatureError:
@@ -191,6 +192,47 @@ def user_profile(request):
             return JsonResponse({'code': 500, 'errmsg': '服务器内部错误。'})
 
     return JsonResponse({'code': 400, 'errmsg': '只允许GET请求'})
+
+
+@csrf_exempt
+def upload_photos(request):
+    if request.method == 'POST' and request.FILES['file']:
+        token = request.COOKIES.get('Authorization')
+        if not token:
+            return JsonResponse({'code': 401, 'errmsg': '未提供有效的身份认证'})
+        try:
+            # 解码 JWT
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            # user_id = 1
+            file = request.FILES['file']
+            if not file:
+                return JsonResponse({'code': 400, 'errmsg': '没有提供文件'})
+
+            file_name = f'{user_id}/{file.name}'  # 可以根据需要调整文件名
+            bucket.put_object(file_name, file)
+
+            file_url = bucket.sign_url('GET', file_name, 3600)  # 生成1小时有效的访问 URL
+
+            user = User.objects.get(user_id=user_id)
+            user.avatar_url = file_url
+            user.save()
+
+            return JsonResponse({'code': 200, 'data': {'avatar_url': file_url}})
+        except jwt.ExpiredSignatureError:
+            traceback.print_exc()
+            return JsonResponse({'code': 401, 'errmsg': 'Token已过期'})
+        except jwt.InvalidTokenError:
+            traceback.print_exc()
+            return JsonResponse({'code': 401, 'errmsg': '无效的Token'})
+        except User.DoesNotExist:
+            traceback.print_exc()
+            return JsonResponse({'code': 400, 'errmsg': '用户不存在。'})
+        except Exception as e:
+            traceback.print_exc()
+            return JsonResponse({'code': 500, 'errmsg': '服务器内部错误。'})
+
+    return JsonResponse({'code': 400, 'errmsg': '只允许POST请求'})
 
 
 @csrf_exempt
