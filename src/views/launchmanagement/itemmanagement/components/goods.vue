@@ -11,6 +11,7 @@
       :cell-style="{ textAlign: 'center' }"
       v-loading="loading"
       style="width: 100%"
+      @sort-change="handleSortChange"
     >
       <el-table-column label="物品名称" width="220">
         <template #default="scope">
@@ -54,12 +55,17 @@
           {{ SampleMap[scope.row.hasFreeSample] }}
         </template>
       </el-table-column>
-      <el-table-column label="佣金率">
+      <el-table-column label="佣金率" sortable="custom" prop="commissionRate">
         <template #default="scope"> {{ scope.row.commissionRate }}</template>
       </el-table-column>
-      <el-table-column label="合作费">
+      <el-table-column label="合作费" sortable="custtom" prop="CooperationFee">
         <template #default="scope">
           {{ scope.row.CooperationFee }}
+        </template>
+      </el-table-column>
+      <el-table-column label="价格" sortable="custom" prop="price">
+        <template #default="scope">
+          {{ scope.row.price }}
         </template>
       </el-table-column>
       <el-table-column label="物品状态">
@@ -282,7 +288,18 @@ const GetProducts = async (id) => {
     loading.value = true;
     const params = {
       shopId: id || props.ShopId,
+      sort_by: sortBy.value,
+      sort_order: sortOrder.value,
     };
+    if (id === undefined) {
+      delete params.shopId;
+    }
+    if (!sortBy.value) {
+      delete params.sort_by;
+    }
+    if (!sortOrder.value) {
+      delete params.sort_order;
+    }
     const response = await ApiGetProducts(params, pageObj.page, pageObj.size);
     modelData.value = [...response.products];
     pageObj.total = response.total_products || 0;
@@ -394,6 +411,17 @@ const handleDelete = (item: object) => {
     .catch(() => {
       // catch error
     });
+};
+const sortBy = ref("");
+const sortOrder = ref("");
+const handleSortChange = ({ column, prop, order }) => {
+  sortBy.value = prop;
+  if (order == "ascending") {
+    sortOrder.value = "asc";
+  } else if (order == "descending") {
+    sortOrder.value = "desc";
+  }
+  GetProducts();
 };
 GetProducts();
 

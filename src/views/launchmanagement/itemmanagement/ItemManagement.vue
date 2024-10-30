@@ -33,7 +33,8 @@
           >导出</el-button
         >
       </div>
-      <div style="margin-top: 1.25rem" v-if="ShopId && ShopId != ''">
+      <!-- <div style="margin-top: 1.25rem" v-if="ShopId && ShopId != ''"> -->
+      <div>
         <Good ref="GoodRef" :ShopId="ShopId" />
       </div>
     </el-card>
@@ -126,6 +127,7 @@ const handleAdd = () => {
 
 onMounted(() => {
   GetShop();
+  GoodRef.value.GetProducts(undefined);
 });
 </script>
 <style></style>

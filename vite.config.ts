@@ -19,17 +19,19 @@ export default defineConfig({
     proxy: {
       "/user": {
         // 文杰
-        target: "http://192.168.31.244:8833",
+        // target: "http://192.168.31.244:8833",
         // localhost
         // target: "http://192.168.31.236:8000",
+        target: "http://192.168.31.33:8833",
         changeOrigin: true,
         rewrite: (path) =>
           path.replace(
             /^\/user/,
             // 文杰
-            "http://192.168.31.244:8833"
+            // "http://192.168.31.244:8833"
             // localhost
             // "http://192.168.31.236:8000"
+            "http://192.168.31.33:8833"
           ),
       },
 
