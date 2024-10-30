@@ -19,6 +19,15 @@
             {{ modelGood != null ? "重新选择" : "选择商品" }}
           </el-button>
         </el-form-item>
+        <el-form-item label="已选商店:" v-if="modelShop && modelShop != null">
+          <div style="background: #eee; padding: 20px">
+            <div>
+              <div>店铺名称:&nbsp{{ modelShop.shop_name }}</div>
+            </div>
+            <div>店铺描述:{{ modelShop.description }}</div>
+            <div>店铺地区:&nbsp{{ modelShop.location }}</div>
+          </div>
+        </el-form-item>
         <el-form-item label="已选商品:" v-if="modelGood && modelGood != null">
           <div style="background: #eee; padding: 20px">
             <div style="display: flex">
@@ -36,16 +45,7 @@
             <div>商品链接:&nbsp{{ modelGood.product_link }}</div>
           </div>
         </el-form-item>
-        
-        <el-form-item label="已选商店:" v-if="modelShop && modelShop != null">
-          <div style="background: #eee; padding: 20px">
-            <div>
-              <div>店铺名称:&nbsp{{ modelShop.shop_name }}</div>
-            </div>
-            <div>店铺描述:{{ modelShop.description }}</div>
-            <div>店铺地区:&nbsp{{ modelShop.location }}</div>
-          </div>
-        </el-form-item>
+
         <el-form-item label="地区信息:">
           <el-select
             value-key="p_id"
@@ -101,9 +101,11 @@
       </div>
     </el-card>
     <!-- 商品弹出层 -->
-    <div>
+    <div v-if="shopId">
       <Good
+        ref="GoodRef"
         :goodDialog="goodDialog"
+        :shopId="shopId"
         @handleCloseGoodDialog="handleCloseGoodDialog"
         @choiceGood="choiceGood"
       />
@@ -138,12 +140,22 @@ const regionObj = reactive({
   modelCity: [],
   area: "",
   modelArea: [],
+  shopId: "",
 });
 
 // 商品
 const goodDialog = ref(false);
+const GoodRef = ref();
 const handleOpenGood = () => {
-  goodDialog.value = true;
+  if (!modelShop.value) {
+    ElMessage({
+      message: "请先选择店铺！",
+      type: "warning",
+    });
+  } else {
+    goodDialog.value = true;
+    GoodRef.value.GetProducts();
+  }
 };
 
 const handleCloseGoodDialog = (value) => {
@@ -164,8 +176,10 @@ const handleClose = (value) => {
   shopDialog.value = value;
 };
 const modelShop = ref(null);
+const shopId = ref(null);
 const choiceShop = (data) => {
   modelShop.value = data;
+  shopId.value = data.shopId;
 };
 
 const GetRegion = () => {

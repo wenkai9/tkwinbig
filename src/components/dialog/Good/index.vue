@@ -68,6 +68,7 @@ import { reactive, ref, defineProps, defineEmits } from "vue";
 import { ApiGetProducts } from "@/api/launchmanagement";
 const props = defineProps({
   goodDialog: Boolean,
+  shopId: Number,
 });
 
 let goodData = ref([]);
@@ -78,9 +79,13 @@ let pageObj = reactive({
   total: 0,
 });
 const GetProducts = async () => {
+  console.log(444)
+  const params = {
+    shopId: props.shopId,
+  };
   try {
     loading.value = true;
-    const response = await ApiGetProducts("", pageObj.page, pageObj.size);
+    const response = await ApiGetProducts(params, pageObj.page, pageObj.size);
     goodData.value = [...response.products];
     pageObj.total = response.total_products || 0;
   } catch (error) {
@@ -111,6 +116,9 @@ const choiceGood = (val) => {
   emit("choiceGood", val);
   emit("handleCloseGoodDialog", false);
 };
+defineExpose({
+  GetProducts,
+});
 </script>
 <style lang="scss" scoped>
 .wrap_row2 {
