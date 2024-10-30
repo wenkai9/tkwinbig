@@ -9,6 +9,11 @@
             placeholder="请输入任务名称"
           />
         </el-form-item>
+        <el-form-item label="店铺信息:">
+          <el-button type="primary" @click="handleOpenShop">
+            {{ modelShop != null ? "重新选择" : "选择店铺" }}
+          </el-button>
+        </el-form-item>
         <el-form-item label="商品信息:">
           <el-button type="primary" @click="handleOpenGood">
             {{ modelGood != null ? "重新选择" : "选择商品" }}
@@ -31,11 +36,7 @@
             <div>商品链接:&nbsp{{ modelGood.product_link }}</div>
           </div>
         </el-form-item>
-        <el-form-item label="店铺信息:">
-          <el-button type="primary" @click="handleOpenShop">
-            {{ modelShop != null ? "重新选择" : "选择店铺" }}
-          </el-button>
-        </el-form-item>
+        
         <el-form-item label="已选商店:" v-if="modelShop && modelShop != null">
           <div style="background: #eee; padding: 20px">
             <div>

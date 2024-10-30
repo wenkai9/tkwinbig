@@ -48,7 +48,7 @@
 </template>
 <script setup lang="ts">
 import { reactive, ref, defineProps, defineEmits } from "vue";
-import { ApiAddProducts } from "@/api/launchmanagement";
+import { ApiAddProducts ,ApiGetShopNew} from "@/api/launchmanagement";
 import { string } from "yup";
 const props = defineProps({
   shopDialog: Boolean,
@@ -71,10 +71,9 @@ let pageObj = reactive({
 const getShopData = async () => {
   try {
     shopLoading.value = true;
-    const response = await ApiAddProducts("", pageObj.page, pageObj.size);
-    shopData.value = [...response.shop_data];
-
-    pageObj.total = response.total_shops;
+    const response = await ApiGetShopNew(pageObj.page, pageObj.size);
+    shopData.value = [...response.data];
+    pageObj.total = response.total_products;
   } finally {
     shopLoading.value = false;
   }

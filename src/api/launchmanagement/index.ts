@@ -9,6 +9,12 @@ export function ApiGetShop() {
 
   });
 }
+export function ApiGetShopNew(page: Number, size: Number) {
+  return service.request({
+    url: `/user/get_shop?page=${page}&size=${size}`,
+    method: "get",
+  });
+}
 
 export function ApiGetProducts(params: any, page: Number, size: Number) {
   return service.request({
